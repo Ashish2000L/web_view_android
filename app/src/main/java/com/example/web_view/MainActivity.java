@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
         progress=findViewById(R.id.Progress);
         text=findViewById(R.id.text);
         btn=findViewById(R.id.button);
-while (!connection && count<4)
+
     try {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         assert cm != null;
@@ -55,17 +55,19 @@ while (!connection && count<4)
             });
             connection=true;
             //connection is avlilable
+        }else{
+            no_inter_intent=new Intent(MainActivity.this,no_internet.class);
+            startActivity(no_inter_intent);
+            finish();
         }
     }catch (Exception e){
-         count+=1;
-         text.setText('F');
+
+         text.setText("Fail to load!");
          connection=false;
-         if (count==3)
-         {
-             no_inter_intent=new Intent(MainActivity.this,no_internet.class);
-             startActivity(no_inter_intent);
-             finish();
-         }
+
+
+
+
     }
 
     }

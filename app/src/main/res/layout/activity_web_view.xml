@@ -6,6 +6,14 @@
     android:layout_height="match_parent"
     tools:context=".web_view">
 
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_marginTop="-7dp"
+        android:id="@+id/progress"
+        android:progress="20"
+        android:visibility="gone"/>
     <WebView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
