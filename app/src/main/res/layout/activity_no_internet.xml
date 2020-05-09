@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:lottie_fileName="no_internet.json"
-        android:scaleType="fitCenter"
+        android:scaleType="fitXY"
         app:lottie_loop="true"
         app:lottie_autoPlay="true" />
 
@@ -26,4 +26,16 @@
         android:text="No  Internet !!"
         android:textColor="@color/no_internet"
         android:textSize="30sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/butcherman_next"
+        android:gravity="center"
+        android:text="Refresh"
+        android:textColor="@color/no_internet"
+        android:textSize="30sp"
+        android:id="@+id/refresh"/>
 </RelativeLayout>
