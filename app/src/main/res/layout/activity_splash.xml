@@ -7,28 +7,26 @@
     tools:context=".Splash"
     android:background="@drawable/gradient_toolbar">
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:src="@drawable/splash"
-        android:id="@+id/splash"
-        android:contentDescription="This is the splash image"
-
-        />
-
     <TextView
         android:id="@+id/welcome"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_centerVertical="true"
         android:fontFamily="@font/crafty_girls"
         android:gravity="center"
-        android:text="Welcome"
+        android:hint="Logo"
         android:textColor="@android:color/darker_gray"
         android:textSize="60sp"
         android:visibility="visible" />
 
-
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/welcome"
+        android:layout_marginTop="70dp"
+        android:outlineSpotShadowColor="@color/no_internet"
+        android:outlineAmbientShadowColor="@color/no_internet"
+        android:id="@+id/progress"
+        android:indeterminate="true"
+        />
 </RelativeLayout>
