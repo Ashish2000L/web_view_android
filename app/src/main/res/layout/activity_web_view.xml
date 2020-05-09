@@ -18,4 +18,25 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/webview"/>
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:lottie_loop="true"
+        app:lottie_autoPlay="true"
+        android:visibility="gone"
+        android:id="@+id/no_internet"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/butcherman_next"
+        android:gravity="center"
+        android:text="No  Internet"
+        android:textColor="@color/no_internet"
+        android:textSize="40sp"
+        android:id="@+id/no_internet_text"
+        android:visibility="gone"/>
 </RelativeLayout>

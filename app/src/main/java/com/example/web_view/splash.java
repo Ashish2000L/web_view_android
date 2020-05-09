@@ -1,0 +1,66 @@
+package com.example.web_view;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.airbnb.lottie.LottieAnimationView;
+
+import java.util.Objects;
+
+import static java.lang.Thread.sleep;
+
+public class Splash extends AppCompatActivity {
+
+    TextView text;
+    Animation anim_splash,anim,anim_appear;
+    ImageView splashimg;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        Window window=getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        super.onCreate(savedInstanceState);
+        Objects.requireNonNull(getSupportActionBar()).hide();
+        setContentView(R.layout.activity_splash);
+
+        text=findViewById(R.id.welcome);
+        anim_splash= AnimationUtils.loadAnimation(this,R.anim.animation);
+        anim=AnimationUtils.loadAnimation(this,R.anim.lift_from_bottom);
+        anim_appear= AnimationUtils.loadAnimation(this,R.anim.appear);
+        splashimg=findViewById(R.id.splash);
+        splashimg.startAnimation(anim_splash);
+        splashimg.animate().translationY(-2000).setDuration(2000).setStartDelay(4000);
+        text.setVisibility(View.VISIBLE);
+        text.startAnimation(anim_appear);
+        text.animate().scaleXBy(2).setStartDelay(7000).setDuration(2000);
+        text.animate().translationY(-2000).setDuration(3000).setStartDelay(10000);
+
+
+
+        Thread thread=new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    sleep(12000);
+                    startActivity(new Intent(Splash.this,web_view.class));
+                    finish();
+                    //text.startAnimation(anim_appear);
+                    //text.setVisibility(View.VISIBLE);
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+        thread.start();
+    }
+}

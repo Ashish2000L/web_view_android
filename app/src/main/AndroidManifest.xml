@@ -12,15 +12,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".no_internet"></activity>
-        <activity android:name=".web_view" />
         <activity android:name=".MainActivity">
+
+        </activity>
+        <activity
+            android:name=".Splash"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".no_internet"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".web_view"
+            android:screenOrientation="portrait" />
 
         <meta-data
             android:name="preloaded_fonts"
