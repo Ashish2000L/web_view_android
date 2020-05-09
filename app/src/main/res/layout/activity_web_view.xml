@@ -4,20 +4,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".web_view">
+    tools:context=".web_view"
+    android:id="@+id/background"
+    android:background="@drawable/gradient_toolbar">
 
     <ProgressBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-        android:layout_marginTop="-7dp"
+        android:layout_marginTop="-2dp"
         android:id="@+id/progress"
         android:progress="20"
         android:visibility="gone"/>
     <WebView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/webview"/>
+        android:id="@+id/webview"
+        />
 
     <com.airbnb.lottie.LottieAnimationView
         android:layout_width="match_parent"
