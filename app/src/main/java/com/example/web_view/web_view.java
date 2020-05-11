@@ -4,6 +4,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.animation.Animator;
 import android.app.ProgressDialog;
@@ -33,6 +34,7 @@ import com.airbnb.lottie.LottieAnimationView;
 import com.blogspot.atifsoftwares.animatoolib.Animatoo;
 
 import java.net.URL;
+import java.util.Objects;
 
 public class web_view extends AppCompatActivity {
     private WebView webView;
@@ -42,17 +44,20 @@ public class web_view extends AppCompatActivity {
     TextView text_no_internet;
     View background;
     Boolean status =false;
+    SwipeRefreshLayout swipeRefreshLayout;
     Thread time;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Objects.requireNonNull(getSupportActionBar()).hide();
         Window window=getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         overridePendingTransition(R.anim.do_no_move, R.anim.do_no_move);
         setContentView(R.layout.activity_web_view);
 
+        swipeRefreshLayout=findViewById(R.id.swipe_refresh);
         background = findViewById(R.id.background);
         text_no_internet=findViewById(R.id.no_internet_text);
 
@@ -60,6 +65,9 @@ public class web_view extends AppCompatActivity {
         progressweb=findViewById(R.id.progress);
         webView=findViewById(R.id.webview);
 
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setBuiltInZoomControls(true);
+        webView.getSettings().setDisplayZoomControls(false);
         progressDialog.setMessage("Loading please wait...");
         webView.setWebViewClient(new WebViewClient(){
 
@@ -71,6 +79,13 @@ public class web_view extends AppCompatActivity {
         });
         checkConnection();
 
+        //for swipe to reload option
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+              webView.reload();
+            }
+        });
         //for updating progress
         webView.setWebChromeClient(new WebChromeClient(){
             @Override
@@ -80,8 +95,6 @@ public class web_view extends AppCompatActivity {
 
                 progressweb.setProgress(newProgress);
                 if(newProgress==100){
-
-
                     progressweb.setVisibility(View.GONE);
                     progressDialog.dismiss();
                     setTitle(webView.getTitle());
