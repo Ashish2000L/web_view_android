@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 app/google-services.json
+app/src/main/assets/google.json
+app/src/main/assets/google.json
