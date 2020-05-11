@@ -44,6 +44,8 @@ public class web_view extends AppCompatActivity {
     TextView text_no_internet;
     View background;
     Boolean status =false;
+    LottieAnimationView anim_no_internet;
+    TextView no_internet_text;
     SwipeRefreshLayout swipeRefreshLayout;
     Thread time;
     @Override
@@ -57,6 +59,8 @@ public class web_view extends AppCompatActivity {
         overridePendingTransition(R.anim.do_no_move, R.anim.do_no_move);
         setContentView(R.layout.activity_web_view);
 
+
+        anim_no_internet=findViewById(R.id.no_internet);
         swipeRefreshLayout=findViewById(R.id.swipe_refresh);
         background = findViewById(R.id.background);
         text_no_internet=findViewById(R.id.no_internet_text);
@@ -83,7 +87,8 @@ public class web_view extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-              webView.reload();
+              refresh_check_Connection();
+
             }
         });
         //for updating progress
@@ -95,10 +100,10 @@ public class web_view extends AppCompatActivity {
 
                 progressweb.setProgress(newProgress);
                 if(newProgress==100){
+                    swipeRefreshLayout.setRefreshing(false);
                     progressweb.setVisibility(View.GONE);
                     progressDialog.dismiss();
                     setTitle(webView.getTitle());
-                    //setTitleColor(getTitleColor());
                 }
                 super.onProgressChanged(view, newProgress);
             }
@@ -169,6 +174,8 @@ public class web_view extends AppCompatActivity {
             webView.loadUrl(weburl);
             setTitle(getTitle());
             webView.setVisibility(View.VISIBLE);
+            text_no_internet.setVisibility(View.INVISIBLE);
+            anim_no_internet.setVisibility(View.INVISIBLE);
             progressDialog.dismiss();
             status=true;
 
@@ -179,20 +186,19 @@ public class web_view extends AppCompatActivity {
                 webView.loadUrl(weburl);
                 setTitle(getTitle());
                 webView.setVisibility(View.VISIBLE);
+                text_no_internet.setVisibility(View.INVISIBLE);
+                anim_no_internet.setVisibility(View.INVISIBLE);
                 progressDialog.dismiss();
                 status=true;
             }
             else{
                 progressDialog.dismiss();
                 webView.setVisibility(View.GONE);
-                startActivity(new Intent(web_view.this,no_internet.class));
-                Animatoo.animateFade(web_view.this);
-                finish();
+                text_no_internet.setVisibility(View.VISIBLE);
+                anim_no_internet.setVisibility(View.VISIBLE);
                 status=false;
             }
         }
-
-
     }
     //for reload menue on toolbar
     @Override
@@ -249,9 +255,11 @@ public class web_view extends AppCompatActivity {
 
         assert wifi != null;
         if(wifi.isConnected()){
-            webView.loadUrl(webView.getUrl());
+            webView.loadUrl(weburl);
             setTitle(getTitle());
             webView.setVisibility(View.VISIBLE);
+            text_no_internet.setVisibility(View.INVISIBLE);
+            anim_no_internet.setVisibility(View.INVISIBLE);
             progressDialog.dismiss();
             status=true;
 
@@ -259,22 +267,21 @@ public class web_view extends AppCompatActivity {
         else {
             assert mobileNetwork != null;
             if (mobileNetwork.isConnected()){
-                webView.loadUrl(webView.getUrl());
+                webView.loadUrl(weburl);
                 setTitle(getTitle());
                 webView.setVisibility(View.VISIBLE);
+                text_no_internet.setVisibility(View.INVISIBLE);
+                anim_no_internet.setVisibility(View.INVISIBLE);
                 progressDialog.dismiss();
                 status=true;
             }
             else{
                 progressDialog.dismiss();
                 webView.setVisibility(View.GONE);
-                startActivity(new Intent(web_view.this,no_internet.class));
-                Animatoo.animateFade(web_view.this);
-                finish();
+                text_no_internet.setVisibility(View.VISIBLE);
+                anim_no_internet.setVisibility(View.VISIBLE);
                 status=false;
             }
         }
-
-
     }
 }
