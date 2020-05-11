@@ -1,8 +1,16 @@
 package com.example.web_view;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -10,21 +18,32 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.blogspot.atifsoftwares.animatoolib.Animatoo;
+import com.google.android.play.core.appupdate.AppUpdateInfo;
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.install.model.AppUpdateType;
+import com.google.android.play.core.install.model.UpdateAvailability;
+import com.google.android.play.core.tasks.Task;
+
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.w3c.dom.Document;
 
 import java.util.Objects;
 
 import static java.lang.Thread.sleep;
+import static org.jsoup.Jsoup.*;
 
 public class Splash extends AppCompatActivity {
 
+    LinearLayout loading;
+    Thread time;
     TextView text;
-    ProgressBar progress;
-    Boolean status=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Window window=getWindow();
@@ -33,45 +52,29 @@ public class Splash extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).hide();
         setContentView(R.layout.activity_splash);
 
-        text=findViewById(R.id.welcome);
-        progress=findViewById(R.id.progress);
-        /*
-        anim_splash= AnimationUtils.loadAnimation(this,R.anim.animation);
-       anim=AnimationUtils.loadAnimation(this,R.anim.lift_from_bottom);
-        anim_appear= AnimationUtils.loadAnimation(this,R.anim.appear);
-        splashimg=findViewById(R.id.splash);
-        splashimg.startAnimation(anim_splash);
-       splashimg.animate().translationY(-2000).setDuration(2000).setStartDelay(4000);
-        text.setVisibility(View.VISIBLE);
-        text.startAnimation(anim_appear);
-        text.animate().scaleXBy(2).setStartDelay(7000).setDuration(2000);
-        text.animate().translationY(-2000).setDuration(3000).setStartDelay(10000);
 
+        loading=findViewById(R.id.loading);
+        text=findViewById(R.id.version);
 
-
-        Thread thread=new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    sleep(12000);
-                    startActivity(new Intent(Splash.this,web_view.class));
-                    finish();
-                    //text.startAnimation(anim_appear);
-                    //text.setVisibility(View.VISIBLE);
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-        thread.start();*/
-        Thread to_web_view=new Thread(new Runnable() {
+        time=new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        time.start();
+        loading.setVisibility(View.VISIBLE);
+        Thread to_web_view=new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    sleep(8000);
                     Intent intent=new Intent(Splash.this,web_view.class);
+                    //to resolve problem starting app each time from starting
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -87,6 +90,7 @@ public class Splash extends AppCompatActivity {
             }
         });
         to_web_view.start();
-
     }
+
+
 }
