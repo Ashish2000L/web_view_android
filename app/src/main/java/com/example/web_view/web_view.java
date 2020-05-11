@@ -1,7 +1,5 @@
 package com.example.web_view;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -9,7 +7,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.animation.Animator;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -22,8 +19,9 @@ import android.view.ViewAnimationUtils;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
@@ -31,9 +29,7 @@ import android.widget.TextView;
 import static java.lang.Thread.sleep;
 
 import com.airbnb.lottie.LottieAnimationView;
-import com.blogspot.atifsoftwares.animatoolib.Animatoo;
 
-import java.net.URL;
 import java.util.Objects;
 
 public class web_view extends AppCompatActivity {
@@ -45,7 +41,6 @@ public class web_view extends AppCompatActivity {
     View background;
     Boolean status =false;
     LottieAnimationView anim_no_internet;
-    TextView no_internet_text;
     SwipeRefreshLayout swipeRefreshLayout;
     Thread time;
     @Override
@@ -103,7 +98,6 @@ public class web_view extends AppCompatActivity {
                     swipeRefreshLayout.setRefreshing(false);
                     progressweb.setVisibility(View.GONE);
                     progressDialog.dismiss();
-                    setTitle(webView.getTitle());
                 }
                 super.onProgressChanged(view, newProgress);
             }
@@ -192,16 +186,25 @@ public class web_view extends AppCompatActivity {
                 status=true;
             }
             else{
+                if(webView.getTitle().equals("Webpage not available")){
                 progressDialog.dismiss();
-                webView.setVisibility(View.GONE);
+                webView.setVisibility(View.INVISIBLE);
                 text_no_internet.setVisibility(View.VISIBLE);
                 anim_no_internet.setVisibility(View.VISIBLE);
                 status=false;
+                }else{
+                    progressDialog.dismiss();
+
+                    webView.setVisibility(View.INVISIBLE);
+                    text_no_internet.setVisibility(View.VISIBLE);
+                    anim_no_internet.setVisibility(View.VISIBLE);
+                    status=false;
+                }
             }
         }
     }
     //for reload menue on toolbar
-    @Override
+   /* @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar_menu,menu);
         return super.onCreateOptionsMenu(menu);
@@ -214,7 +217,7 @@ public class web_view extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     private void circularRevealActivity() {
         int cx = background.getRight() - getDips(44);
@@ -255,7 +258,7 @@ public class web_view extends AppCompatActivity {
 
         assert wifi != null;
         if(wifi.isConnected()){
-            webView.loadUrl(weburl);
+            webView.loadUrl(webView.getUrl());
             setTitle(getTitle());
             webView.setVisibility(View.VISIBLE);
             text_no_internet.setVisibility(View.INVISIBLE);
@@ -267,8 +270,7 @@ public class web_view extends AppCompatActivity {
         else {
             assert mobileNetwork != null;
             if (mobileNetwork.isConnected()){
-                webView.loadUrl(weburl);
-                setTitle(getTitle());
+                webView.loadUrl(webView.getUrl());
                 webView.setVisibility(View.VISIBLE);
                 text_no_internet.setVisibility(View.INVISIBLE);
                 anim_no_internet.setVisibility(View.INVISIBLE);
@@ -276,11 +278,21 @@ public class web_view extends AppCompatActivity {
                 status=true;
             }
             else{
-                progressDialog.dismiss();
-                webView.setVisibility(View.GONE);
-                text_no_internet.setVisibility(View.VISIBLE);
-                anim_no_internet.setVisibility(View.VISIBLE);
-                status=false;
+                if(webView.getTitle().equals("Webpage not available")){
+                    progressDialog.dismiss();
+                    swipeRefreshLayout.setRefreshing(false);
+                    webView.setVisibility(View.INVISIBLE);
+                    text_no_internet.setVisibility(View.VISIBLE);
+                    anim_no_internet.setVisibility(View.VISIBLE);
+                    status=false;
+                }else{
+                    progressDialog.dismiss();
+                    swipeRefreshLayout.setRefreshing(false);
+                    webView.setVisibility(View.INVISIBLE);
+                    text_no_internet.setVisibility(View.VISIBLE);
+                    anim_no_internet.setVisibility(View.VISIBLE);
+                    status=false;
+                }
             }
         }
     }
