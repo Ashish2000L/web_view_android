@@ -10,6 +10,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -88,6 +89,9 @@ public class web_view extends AppCompatActivity {
 
             }
         });
+
+        //set colours to the swipe relode option
+        swipeRefreshLayout.setColorSchemeColors(Color.BLUE,Color.CYAN);
         //for updating progress
         webView.setWebChromeClient(new WebChromeClient(){
             @Override
@@ -213,21 +217,6 @@ public class web_view extends AppCompatActivity {
             }
         }
     }
-    //for reload menue on toolbar
-   /* @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.toolbar_menu,menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.nav_reload) {
-            refresh_check_Connection();
-        }
-
-        return super.onOptionsItemSelected(item);
-    }*/
 
     private void circularRevealActivity() {
         int cx = background.getRight() - getDips(44);
