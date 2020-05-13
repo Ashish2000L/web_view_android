@@ -11,7 +11,10 @@ import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -32,8 +35,10 @@ import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.URLUtil;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -83,24 +88,49 @@ public class web_view extends AppCompatActivity {
         webView=findViewById(R.id.webview);
 
         if(savedInstanceState !=null){
+            webView.getSettings().setJavaScriptEnabled(true);
+            //webView.getSettings().setBuiltInZoomControls(true);
+            //webView.getSettings().setDisplayZoomControls(false);
+            //refresh_check_Connection();
+            // webView.loadUrl(webView.getUrl());
+            progressDialog.setMessage("Loading please wait...");
             webView.restoreState(savedInstanceState);
+            webView.setWebChromeClient(new myChrome());
         }else{
-
             webView.getSettings().setJavaScriptEnabled(true);
             webView.getSettings().setBuiltInZoomControls(true);
             webView.getSettings().setDisplayZoomControls(false);
+            WebSettings webSettings=webView.getSettings();
+            webSettings.setAllowFileAccess(true);
+            webSettings.setAppCacheEnabled(true);
             progressDialog.setMessage("Loading please wait...");
-            webView.setWebViewClient(new WebViewClient(){
-
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    view.loadUrl(url);
-                    return true;
-                }
-            });
+            webView.setWebChromeClient(new myChrome());
             checkConnection();
         }
 
+        webView.setWebViewClient(new WebViewClient(){
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+        });
+
+       /* webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setBuiltInZoomControls(true);
+        webView.getSettings().setDisplayZoomControls(false);
+        progressDialog.setMessage("Loading please wait...");
+        webView.setWebViewClient(new WebViewClient(){
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+        });
+        webView.setWebChromeClient(new ChromeClient());
+        checkConnection();*/
 
 
         //for swipe to reload option
@@ -176,7 +206,7 @@ public class web_view extends AppCompatActivity {
 
 
 
-        time=new Thread(new Runnable() {
+       /* time=new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -211,7 +241,7 @@ public class web_view extends AppCompatActivity {
         if(status)
         {
             time.start();
-        }
+        }*/
     }
     //for checkting backpress condition
     @Override
@@ -283,7 +313,7 @@ public class web_view extends AppCompatActivity {
         }
     }
 
-    private void circularRevealActivity() {
+   /* private void circularRevealActivity() {
         int cx = background.getRight() - getDips(44);
         int cy = background.getBottom() - getDips(44);
 
@@ -308,7 +338,7 @@ public class web_view extends AppCompatActivity {
                 TypedValue.COMPLEX_UNIT_DIP,
                 dps,
                 resources.getDisplayMetrics());
-    }
+    }*/
 
 
     public void refresh_check_Connection(){
@@ -367,4 +397,46 @@ public class web_view extends AppCompatActivity {
         webView.saveState(outState);
 
     }
+
+    private class myChrome extends WebChromeClient {
+        private View mCustomView;
+        private WebChromeClient.CustomViewCallback mCustomViewCallback;
+        //protected FrameLayout mFullscreenContainer;
+        //private int mOriginalOrientation;
+        private int mOriginalSystemUiVisibility;
+
+        myChrome() {
+        }
+
+        public Bitmap getDefaultVideoPoster() {
+            if (mCustomView == null) {
+                return null;
+            }
+            return BitmapFactory.decodeResource(getApplicationContext().getResources(), 2130837573);
+        }
+
+        public void onHideCustomView() {
+            ((FrameLayout) getWindow().getDecorView()).removeView(this.mCustomView);
+            this.mCustomView = null;
+            getWindow().getDecorView().setSystemUiVisibility(this.mOriginalSystemUiVisibility);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            this.mCustomViewCallback.onCustomViewHidden();
+            this.mCustomViewCallback = null;
+        }
+
+        public void onShowCustomView(View paramView, WebChromeClient.CustomViewCallback paramCustomViewCallback) {
+            if (this.mCustomView != null) {
+                onHideCustomView();
+                return;
+            }
+            this.mCustomView = paramView;
+            this.mOriginalSystemUiVisibility = getWindow().getDecorView().getSystemUiVisibility();
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            //this.mOriginalOrientation = getRequestedOrientation();
+            this.mCustomViewCallback = paramCustomViewCallback;
+            ((FrameLayout) getWindow().getDecorView()).addView(this.mCustomView, new FrameLayout.LayoutParams(-1, -1));
+            getWindow().getDecorView().setSystemUiVisibility(3846);
+        }
+    }
+
 }
