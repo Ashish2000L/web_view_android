@@ -82,19 +82,26 @@ public class web_view extends AppCompatActivity {
         progressweb=findViewById(R.id.progress);
         webView=findViewById(R.id.webview);
 
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.getSettings().setBuiltInZoomControls(true);
-        webView.getSettings().setDisplayZoomControls(false);
-        progressDialog.setMessage("Loading please wait...");
-        webView.setWebViewClient(new WebViewClient(){
+        if(savedInstanceState !=null){
+            webView.restoreState(savedInstanceState);
+        }else{
 
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
-            }
-        });
-        checkConnection();
+            webView.getSettings().setJavaScriptEnabled(true);
+            webView.getSettings().setBuiltInZoomControls(true);
+            webView.getSettings().setDisplayZoomControls(false);
+            progressDialog.setMessage("Loading please wait...");
+            webView.setWebViewClient(new WebViewClient(){
+
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    view.loadUrl(url);
+                    return true;
+                }
+            });
+            checkConnection();
+        }
+
+
 
         //for swipe to reload option
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -352,5 +359,12 @@ public class web_view extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        webView.saveState(outState);
+
     }
 }

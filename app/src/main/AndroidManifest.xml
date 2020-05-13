@@ -23,7 +23,6 @@
         </activity>
         <activity
             android:name=".web_view"
-            android:screenOrientation="portrait"
             />
 
         <meta-data
