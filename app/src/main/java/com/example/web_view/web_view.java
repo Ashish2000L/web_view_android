@@ -4,8 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.app.AlertDialog;
+import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,7 +15,9 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,14 +28,25 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
+import android.webkit.URLUtil;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import static java.lang.Thread.sleep;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.PermissionListener;
 
 import java.util.Objects;
 
@@ -92,6 +107,49 @@ public class web_view extends AppCompatActivity {
 
         //set colours to the swipe relode option
         swipeRefreshLayout.setColorSchemeColors(Color.BLUE,Color.CYAN);
+
+
+        //added download listner to make files download from browser
+        webView.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(final String url, final String userAgent, final String contentDisposition, final String mimetype, long contentLength) {
+
+                Dexter.withActivity(web_view.this)
+                        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .withListener(new PermissionListener() {
+                            @Override
+                            public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
+
+                                DownloadManager.Request request= new DownloadManager.Request(Uri.parse(url));
+                                request.setMimeType(mimetype);
+                                String cookie= CookieManager.getInstance().getCookie(url);
+                                request.addRequestHeader("cookie",cookie);
+                                request.addRequestHeader("User-Agent",userAgent);
+                                request.setDescription("Downloading .....");
+                                request.setTitle(URLUtil.guessFileName(url,contentDisposition,mimetype));
+                                request.allowScanningByMediaScanner();
+                                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype));
+                                DownloadManager downloadManager=(DownloadManager)getSystemService(DOWNLOAD_SERVICE);
+                                assert downloadManager != null;
+                                downloadManager.enqueue(request);
+                                Toast.makeText(web_view.this, "Downloading....", Toast.LENGTH_SHORT).show();
+
+                            }
+
+                            @Override
+                            public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+
+                            }
+
+                            @Override
+                            public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
+
+                                permissionToken.continuePermissionRequest();
+                            }
+                        }).check();
+            }
+        });
         //for updating progress
         webView.setWebChromeClient(new WebChromeClient(){
             @Override
