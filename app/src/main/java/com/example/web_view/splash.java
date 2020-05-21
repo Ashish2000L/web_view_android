@@ -74,12 +74,13 @@ public class Splash extends AppCompatActivity {
                 try {
                     sleep(8000);
                     Intent intent=new Intent(Splash.this,web_view.class);
+                    Animatoo.animateFade(Splash.this);
                     //to resolve problem starting app each time from starting
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     //overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
-                    Animatoo.animateFade(Splash.this);
+
                     startActivity(intent);
                     finish();
 
