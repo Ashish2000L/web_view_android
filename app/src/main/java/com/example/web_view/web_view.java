@@ -6,6 +6,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
 import android.animation.Animator;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
@@ -21,11 +22,15 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Message;
+import android.provider.Browser;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
@@ -95,7 +100,9 @@ public class web_view extends AppCompatActivity {
             // webView.loadUrl(webView.getUrl());
             progressDialog.setMessage("Loading please wait...");
             webView.restoreState(savedInstanceState);
-            webView.setWebChromeClient(new myChrome());
+            webView.setWebViewClient(new Browser());
+            webView.setWebChromeClient(new MyWebClient());
+            //webView.setWebChromeClient(new myChrome());
         }else{
             webView.getSettings().setJavaScriptEnabled(true);
             webView.getSettings().setBuiltInZoomControls(true);
@@ -104,7 +111,9 @@ public class web_view extends AppCompatActivity {
             webSettings.setAllowFileAccess(true);
             webSettings.setAppCacheEnabled(true);
             progressDialog.setMessage("Loading please wait...");
-            webView.setWebChromeClient(new myChrome());
+            webView.setWebViewClient(new Browser());
+            webView.setWebChromeClient(new MyWebClient());
+            //webView.setWebChromeClient(new myChrome());
             checkConnection();
         }
 
@@ -398,7 +407,7 @@ public class web_view extends AppCompatActivity {
 
     }
 
-    private class myChrome extends WebChromeClient {
+    /*private class myChrome extends WebChromeClient {
         private View mCustomView;
         private WebChromeClient.CustomViewCallback mCustomViewCallback;
         //protected FrameLayout mFullscreenContainer;
@@ -436,6 +445,63 @@ public class web_view extends AppCompatActivity {
             this.mCustomViewCallback = paramCustomViewCallback;
             ((FrameLayout) getWindow().getDecorView()).addView(this.mCustomView, new FrameLayout.LayoutParams(-1, -1));
             getWindow().getDecorView().setSystemUiVisibility(3846);
+        }
+    }*/
+
+    class Browser
+            extends WebViewClient
+    {
+        Browser() {}
+
+        public boolean shouldOverrideUrlLoading(WebView paramWebView, String paramString)
+        {
+            paramWebView.loadUrl(paramString);
+            return true;
+        }
+    }
+
+    public class MyWebClient
+            extends WebChromeClient
+    {
+        private View mCustomView;
+        private WebChromeClient.CustomViewCallback mCustomViewCallback;
+        protected FrameLayout mFullscreenContainer;
+        private int mOriginalOrientation;
+        private int mOriginalSystemUiVisibility;
+
+        public MyWebClient() {}
+
+        public Bitmap getDefaultVideoPoster()
+        {
+            if (web_view.this == null) {
+                return null;
+            }
+            return BitmapFactory.decodeResource(web_view.this.getApplicationContext().getResources(), 2130837573);
+        }
+
+        public void onHideCustomView()
+        {
+            ((FrameLayout)web_view.this.getWindow().getDecorView()).removeView(this.mCustomView);
+            this.mCustomView = null;
+            web_view.this.getWindow().getDecorView().setSystemUiVisibility(this.mOriginalSystemUiVisibility);
+            web_view.this.setRequestedOrientation(this.mOriginalOrientation);
+            this.mCustomViewCallback.onCustomViewHidden();
+            this.mCustomViewCallback = null;
+        }
+
+        public void onShowCustomView(View paramView, WebChromeClient.CustomViewCallback paramCustomViewCallback)
+        {
+            if (this.mCustomView != null)
+            {
+                onHideCustomView();
+                return;
+            }
+            this.mCustomView = paramView;
+            this.mOriginalSystemUiVisibility = web_view.this.getWindow().getDecorView().getSystemUiVisibility();
+            this.mOriginalOrientation = web_view.this.getRequestedOrientation();
+            this.mCustomViewCallback = paramCustomViewCallback;
+            ((FrameLayout)web_view.this.getWindow().getDecorView()).addView(this.mCustomView, new FrameLayout.LayoutParams(-1, -1));
+            web_view.this.getWindow().getDecorView().setSystemUiVisibility(3846);
         }
     }
 
