@@ -48,7 +48,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="1. 0. 2"
+        android:text="1. 0. 6"
         android:layout_alignParentBottom="true"
         style="@style/TextAppearance.AppCompat.Large"
         android:gravity="center"
