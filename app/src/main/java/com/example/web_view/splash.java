@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -22,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.blogspot.atifsoftwares.animatoolib.Animatoo;
@@ -82,52 +84,56 @@ public class Splash extends AppCompatActivity {
 
 
         final AppUpdaterUtils appUpdaterUtils = new AppUpdaterUtils(this);
-        final AppUpdater appUpdater = new AppUpdater(this)
-                .setDisplay(Display.NOTIFICATION)
-                .setUpdateFrom(UpdateFrom.JSON)
-                .setUpdateJSON("http://free4all.ezyro.com/json_files/web_view.json")
-                .showAppUpdated(false)
-                .setTitleOnUpdateAvailable("Update available")
-                .setContentOnUpdateAvailable("Check out the latest version available of my app!")
-                .setTitleOnUpdateNotAvailable("Update not available")
-                .setContentOnUpdateNotAvailable("no update available!!")
-                .setButtonUpdate("Update now?")
-                .setButtonUpdateClickListener(new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+        //final AppUpdater appUpdater = new AppUpdater(this)
+        //        .setUpdateFrom(UpdateFrom.JSON)
+        //        .setUpdateJSON("http://free4all.ezyro.com/json_files/web_view.json")
+        //        .setDisplay(Display.DIALOG)
+        //        .setTitleOnUpdateAvailable("Update available")
+        //        .setContentOnUpdateAvailable("Check out the latest version available of my app!")
+        //        .setTitleOnUpdateNotAvailable("Update not available")
+        //        .setContentOnUpdateNotAvailable("no update available!!")
+        //        .setButtonUpdate("Update now?")
+        //        .setButtonUpdateClickListener(new DialogInterface.OnClickListener() {
+        //            @Override
+        //            public void onClick(DialogInterface dialog, int which) {
+//
+//
+        //
+        //            }
+        //        })
+        //        .setButtonDismiss("Maybe later")
+        //        .setButtonDismissClickListener(null)
+        //        .setButtonDoNotShowAgain(null)
+        //        .setCancelable(false);
+        //appUpdater.start();
 
+        appUpdaterUtils.setUpdateFrom(UpdateFrom.JSON);
+        appUpdaterUtils.setUpdateJSON("http://free4all.ezyro.com/json_files/web_view.json");
+        appUpdaterUtils.withListener(new AppUpdaterUtils.UpdateListener() {
+            @Override
+            public void onSuccess(Update update, Boolean isUpdateAvailable) {
+                Log.d("Latest Version", update.getLatestVersion());
+                Log.d("Latest Version Code", update.getLatestVersionCode().toString());
+                Log.d("URL", update.getUrlToDownload().toString());
+                Log.d("Is update available?", Boolean.toString(isUpdateAvailable));
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            }
 
-                        appUpdaterUtils.setUpdateFrom(UpdateFrom.JSON);
-                        appUpdaterUtils.setUpdateJSON("http://free4all.ezyro.com/json_files/web_view.json");
-                        appUpdaterUtils.withListener(new AppUpdaterUtils.UpdateListener() {
-                                    @Override
-                                    public void onSuccess(Update update, Boolean isUpdateAvailable) {
-                                        Log.d("Latest Version", update.getLatestVersion());
-                                        Log.d("Latest Version Code", update.getLatestVersionCode().toString());
-                                        Log.d("URL", update.getUrlToDownload().toString());
-                                        Log.d("Is update available?", Boolean.toString(isUpdateAvailable));
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        startActivity(intent);
-                                        finish();
-                                    }
-
-                                    @Override
-                                    public void onFailed(AppUpdaterError error) {
-                                        Log.d("AppUpdater Error", "Something went wrong");
-                                    }
-                                });
-                        appUpdaterUtils.start();
-                    }
-                })
-                .setButtonDismiss("Maybe later")
-                .setButtonDismissClickListener(null)
-                .setButtonDoNotShowAgain(null)
-                .setCancelable(false);
-        appUpdater.start();
-
-
+            @Override
+            public void onFailed(AppUpdaterError error) {
+                Log.d("AppUpdater Error", "Something went wrong");
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            }
+        });
+        appUpdaterUtils.start();
     }
 
 }
