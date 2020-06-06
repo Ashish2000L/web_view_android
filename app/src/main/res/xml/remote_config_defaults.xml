@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<defaultsMap xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <entry>
+        <key>versioncode</key>
+        <value>1</value>
+    </entry>
+
+    <entry>
+        <key>message</key>
+        <value>Got a message here</value>
+    </entry>
+    <entry>
+        <key>
+            is_new_message
+        </key>
+        <value>
+            false
+        </value>
+
+    </entry>
+    <entry>
+        <key>update_details</key>
+        <value>unable to find</value>
+
+    </entry>
+
+</defaultsMap>
