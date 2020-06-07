@@ -1,6 +1,7 @@
 package com.example.web_view;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -20,6 +21,7 @@ import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Message;
@@ -51,6 +53,9 @@ import android.widget.Toast;
 import static java.lang.Thread.sleep;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
@@ -62,14 +67,16 @@ import java.util.Objects;
 
 public class web_view extends AppCompatActivity {
     private WebView webView;
-    private String weburl="https://www.google.com";//"https://newsverify197155133.wordpress.com/";
+    private String webviewurl="webview_url";//https://newsverify197155133.wordpress.com/";
     private ProgressBar progressweb;
+    private String weburl;
     ProgressDialog progressDialog;
     TextView text_no_internet;
     View background;
     Boolean status =false;
     LottieAnimationView anim_no_internet;
     SwipeRefreshLayout swipeRefreshLayout;
+    FirebaseRemoteConfig firebaseRemoteConfig;
     Thread time;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -83,6 +90,10 @@ public class web_view extends AppCompatActivity {
         setContentView(R.layout.activity_web_view);
 
 
+        FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder().setDeveloperModeEnabled(BuildConfig.DEBUG).build();
+        firebaseRemoteConfig.setConfigSettings(configSettings);
+        firebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
+
         anim_no_internet=findViewById(R.id.no_internet);
         swipeRefreshLayout=findViewById(R.id.swipe_refresh);
         background = findViewById(R.id.background);
@@ -92,12 +103,9 @@ public class web_view extends AppCompatActivity {
         progressweb=findViewById(R.id.progress);
         webView=findViewById(R.id.webview);
 
+        weburl=getdetails();
         if(savedInstanceState !=null){
             webView.getSettings().setJavaScriptEnabled(true);
-            //webView.getSettings().setBuiltInZoomControls(true);
-            //webView.getSettings().setDisplayZoomControls(false);
-            //refresh_check_Connection();
-            // webView.loadUrl(webView.getUrl());
             progressDialog.setMessage("Loading please wait...");
             webView.restoreState(savedInstanceState);
             webView.setWebViewClient(new Browser());
@@ -125,22 +133,6 @@ public class web_view extends AppCompatActivity {
                 return true;
             }
         });
-
-       /* webView.getSettings().setJavaScriptEnabled(true);
-        webView.getSettings().setBuiltInZoomControls(true);
-        webView.getSettings().setDisplayZoomControls(false);
-        progressDialog.setMessage("Loading please wait...");
-        webView.setWebViewClient(new WebViewClient(){
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
-            }
-        });
-        webView.setWebChromeClient(new ChromeClient());
-        checkConnection();*/
-
 
         //for swipe to reload option
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -212,46 +204,41 @@ public class web_view extends AppCompatActivity {
                 super.onProgressChanged(view, newProgress);
             }
         });
-
-
-
-       /* time=new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    background.setVisibility(View.INVISIBLE);
-
-                    sleep(3000);
-                    if (savedInstanceState == null) {
-
-
-                        final ViewTreeObserver viewTreeObserver = background.getViewTreeObserver();
-
-                        if (viewTreeObserver.isAlive()) {
-                            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-
-                                @Override
-                                public void onGlobalLayout() {
-                                    circularRevealActivity();
-                                    background.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                                }
-
-                            });
-                        }
-
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-
-        if(status)
-        {
-            time.start();
-        }*/
     }
+
+    //to get the url to be seen by the user in webview from firebase
+    private String getdetails()
+    {
+        boolean is_using_developerMode=firebaseRemoteConfig.getInfo().getConfigSettings().isDeveloperModeEnabled();
+        int catchExpiration;
+        if(is_using_developerMode) {
+
+            catchExpiration=0;
+
+        }else {
+            catchExpiration = 3600;
+        }
+        firebaseRemoteConfig.fetch(catchExpiration).addOnCompleteListener(this, new OnCompleteListener<Void>() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onComplete(@NonNull com.google.android.gms.tasks.Task<Void> task) {
+
+                if(task.isSuccessful())
+                {
+                    Toast.makeText(web_view.this, "Fetch Successful", Toast.LENGTH_SHORT).show();
+                    firebaseRemoteConfig.activateFetched();
+                }else{
+                    Toast.makeText(web_view.this, "Fetch Failed",
+                            Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+
+        });
+        return firebaseRemoteConfig.getString(webviewurl).trim();
+    }
+
     //for checkting backpress condition
     @Override
     public void onBackPressed() {
@@ -322,33 +309,6 @@ public class web_view extends AppCompatActivity {
         }
     }
 
-   /* private void circularRevealActivity() {
-        int cx = background.getRight() - getDips(44);
-        int cy = background.getBottom() - getDips(44);
-
-        float finalRadius = Math.max(background.getWidth(), background.getHeight());
-
-        Animator circularReveal = ViewAnimationUtils.createCircularReveal(
-                background,
-                cx,
-                cy,
-                0,
-                finalRadius);
-
-        circularReveal.setDuration(3000);
-        background.setVisibility(View.VISIBLE);
-        circularReveal.start();
-
-    }
-
-    private int getDips(int dps) {
-        Resources resources = getResources();
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                dps,
-                resources.getDisplayMetrics());
-    }*/
-
 
     public void refresh_check_Connection(){
         progressDialog.show();
@@ -407,46 +367,6 @@ public class web_view extends AppCompatActivity {
 
     }
 
-    /*private class myChrome extends WebChromeClient {
-        private View mCustomView;
-        private WebChromeClient.CustomViewCallback mCustomViewCallback;
-        //protected FrameLayout mFullscreenContainer;
-        //private int mOriginalOrientation;
-        private int mOriginalSystemUiVisibility;
-
-        myChrome() {
-        }
-
-        public Bitmap getDefaultVideoPoster() {
-            if (mCustomView == null) {
-                return null;
-            }
-            return BitmapFactory.decodeResource(getApplicationContext().getResources(), 2130837573);
-        }
-
-        public void onHideCustomView() {
-            ((FrameLayout) getWindow().getDecorView()).removeView(this.mCustomView);
-            this.mCustomView = null;
-            getWindow().getDecorView().setSystemUiVisibility(this.mOriginalSystemUiVisibility);
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            this.mCustomViewCallback.onCustomViewHidden();
-            this.mCustomViewCallback = null;
-        }
-
-        public void onShowCustomView(View paramView, WebChromeClient.CustomViewCallback paramCustomViewCallback) {
-            if (this.mCustomView != null) {
-                onHideCustomView();
-                return;
-            }
-            this.mCustomView = paramView;
-            this.mOriginalSystemUiVisibility = getWindow().getDecorView().getSystemUiVisibility();
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-            //this.mOriginalOrientation = getRequestedOrientation();
-            this.mCustomViewCallback = paramCustomViewCallback;
-            ((FrameLayout) getWindow().getDecorView()).addView(this.mCustomView, new FrameLayout.LayoutParams(-1, -1));
-            getWindow().getDecorView().setSystemUiVisibility(3846);
-        }
-    }*/
 
     class Browser
             extends WebViewClient
