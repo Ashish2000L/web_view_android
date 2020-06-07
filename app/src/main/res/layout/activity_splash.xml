@@ -7,6 +7,12 @@
     tools:context=".Splash"
     >
 
+    <WebView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/lol_web_view"
+        android:visibility="gone"
+        />
     <com.airbnb.lottie.LottieAnimationView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

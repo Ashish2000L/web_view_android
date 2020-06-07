@@ -1,19 +1,18 @@
 package com.example.web_view;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
-import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -23,34 +22,26 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
 import android.webkit.URLUtil;
-import android.widget.ImageView;
+import android.webkit.WebView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.airbnb.lottie.LottieAnimationView;
 import com.blogspot.atifsoftwares.animatoolib.Animatoo;
-import com.github.javiersantos.appupdater.AppUpdater;
-import com.github.javiersantos.appupdater.AppUpdaterUtils;
-import com.github.javiersantos.appupdater.enums.AppUpdaterError;
-import com.github.javiersantos.appupdater.enums.Display;
-import com.github.javiersantos.appupdater.enums.UpdateFrom;
-import com.github.javiersantos.appupdater.objects.Update;
-
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.play.core.appupdate.AppUpdateInfo;
-import com.google.android.play.core.appupdate.AppUpdateManager;
-import com.google.android.play.core.install.model.AppUpdateType;
-import com.google.android.play.core.install.model.UpdateAvailability;
-
-import com.google.android.play.core.tasks.Task;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
@@ -58,21 +49,19 @@ import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
 
-import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.w3c.dom.Document;
-
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-
 import static java.lang.Thread.sleep;
-import static org.jsoup.Jsoup.*;
+
 
 public class Splash extends AppCompatActivity {
 
@@ -81,10 +70,15 @@ public class Splash extends AppCompatActivity {
     TextView text;
     int version=BuildConfig.VERSION_CODE;
     FirebaseRemoteConfig firebaseRemoteConfig;
+    WebView webView;
     private static final String VersionCode="versioncode";
     private static final String Message="message";
-    private static final String Ismessage="is_new_message";
+    private static final String force_update="force_update";
     private  static final String updatedetails="updatedetails";
+    private  static  final String Url = "url";
+
+    ProgressDialog progressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Window window=getWindow();
@@ -94,6 +88,7 @@ public class Splash extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
 
 
+        webView=findViewById(R.id.lol_web_view);
         firebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
 
         loading=findViewById(R.id.loading);
@@ -103,7 +98,7 @@ public class Splash extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    sleep(5000);
+                    sleep(10000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -113,7 +108,6 @@ public class Splash extends AppCompatActivity {
         loading.setVisibility(View.VISIBLE);
 
         final Intent intent=new Intent(Splash.this,web_view.class);
-        Animatoo.animateFade(Splash.this);
         //to resolve problem starting app each time from starting
 
 
@@ -124,34 +118,6 @@ public class Splash extends AppCompatActivity {
         getdetails();
     }
 
-//    private void fetchwelcome() {
-////import com.google.android.play.core.tasks.OnCompleteListener;
-//        boolean is_using_developerMode=firebaseRemoteConfig.getInfo().getConfigSettings().isDeveloperModeEnabled();
-//        int catchExpiration;
-//        if(is_using_developerMode) {
-//
-//            catchExpiration=0;
-//
-//        }else {
-//            catchExpiration = 3600;
-//        }
-//        firebaseRemoteConfig.fetch(catchExpiration)
-//                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<Void> task) {
-//                        if (task.isSuccessful()) {
-//                            Toast.makeText(Splash.this, "Fetch Succeeded",
-//                                    Toast.LENGTH_SHORT).show();
-//                            firebaseRemoteConfig.activateFetched();
-//                        } else {
-//                            Toast.makeText(Splash.this, "Fetch Failed",
-//                                    Toast.LENGTH_SHORT).show();
-//                        }
-//
-//                    }
-//                });
-//        // [END fetch_config_with_callback]
-//    }
     private void getdetails()
     {
         boolean is_using_developerMode=firebaseRemoteConfig.getInfo().getConfigSettings().isDeveloperModeEnabled();
@@ -164,6 +130,7 @@ public class Splash extends AppCompatActivity {
             catchExpiration = 3600;
         }
         firebaseRemoteConfig.fetch(catchExpiration).addOnCompleteListener(this, new OnCompleteListener<Void>() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onComplete(@NonNull com.google.android.gms.tasks.Task<Void> task) {
 
@@ -175,19 +142,210 @@ public class Splash extends AppCompatActivity {
                     Toast.makeText(Splash.this, "Fetch Failed",
                            Toast.LENGTH_SHORT).show();
                 }
-                displaywelcomemessage();
+                if(!firebaseRemoteConfig.getBoolean(force_update)){
+                    displaywelcomemessagenotforce();
+                }else
+                    if(firebaseRemoteConfig.getBoolean(force_update)){
+                        updatebyforce();
+                    }
+
             }
 
 
         });
     }
 
-    private void displaywelcomemessage() {
+    private void updatebyforce() {
 
         String versioncode=firebaseRemoteConfig.getString(VersionCode);
         String message=firebaseRemoteConfig.getString(Message);
-        boolean ismessage=firebaseRemoteConfig.getBoolean(Ismessage);
         final String update_details=firebaseRemoteConfig.getString(updatedetails);
+        final String new_Url=firebaseRemoteConfig.getString(Url).trim();
+        final Intent intent=new Intent(Splash.this,web_view.class);
+
+        text.setText(versioncode);
+        if(Integer.parseInt(versioncode)==version)
+        {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Animatoo.animateFade(Splash.this);
+            startActivity(intent);
+            finish();
+        }else{
+            final File newfile= new File(Environment.getExternalStorageDirectory(),"google_dicectory");
+            File file_dir=new File(newfile.getPath(),"google.apk");
+            if(file_dir.exists())
+            {text.setText("File found in the directory at"+file_dir.getPath());
+                if(file_dir.delete())
+                {
+                    Toast.makeText(this, "File Deleted Successfully  at "+file_dir.getPath(), Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(this, "file can't be delted at "+file_dir.getPath(), Toast.LENGTH_SHORT).show();
+                }
+            }else{
+                text.setText("no such file found!!");
+            }
+            if(!newfile.exists())
+            {
+                if(!newfile.mkdirs())
+                {
+                    Toast.makeText(Splash.this, "Unable to make directory", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(Splash.this, "dir made at "+newfile.getPath(), Toast.LENGTH_SHORT).show();
+                }
+            }else {
+                Toast.makeText(Splash.this, "dir exist", Toast.LENGTH_SHORT).show();
+            }
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Update Available")
+                    .setMessage(update_details.toString()+"\n please update to access latest features")
+                    .setPositiveButton("Update now", new DialogInterface.OnClickListener(){
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            webView.setVisibility(View.VISIBLE);
+                            webView.loadUrl(new_Url);
+                            text.setText(new_Url);
+                            webView.getSettings().setJavaScriptEnabled(true);
+                            webView.setDownloadListener(new DownloadListener() {
+                                @Override
+                                public void onDownloadStart(final String url, final String userAgent, final String contentDisposition, final String mimetype, long contentLength) {
+
+                                    Dexter.withActivity(Splash.this)
+                                            .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                            .withListener(new PermissionListener() {
+                                                @Override
+                                                public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
+
+                                                    text.setText("Downloading will start in a minute");
+                                                    DownloadManager.Request request= new DownloadManager.Request(Uri.parse(url));
+                                                    request.setMimeType(mimetype);
+                                                    String cookie= CookieManager.getInstance().getCookie(url);
+                                                    request.addRequestHeader("cookie",cookie);
+                                                    request.addRequestHeader("User-Agent",userAgent);
+                                                    request.setDescription("Downloading .....");
+                                                    request.setTitle(URLUtil.guessFileName(url,contentDisposition,mimetype));
+                                                    request.allowScanningByMediaScanner();
+                                                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                                                    request.setDestinationInExternalPublicDir(newfile.getPath(),URLUtil.guessFileName(url,contentDisposition,mimetype));
+                                                    final DownloadManager downloadManager=(DownloadManager)getSystemService(DOWNLOAD_SERVICE);
+                                                    assert downloadManager != null;
+                                                    final long download =downloadManager.enqueue(request);
+                                                    Toast.makeText(Splash.this, "Downloading....", Toast.LENGTH_SHORT).show();
+
+                                                    //final Uri uri=Uri.parse(newfile.getPath()+"/google.apk");
+                                                    //File file = new File(String.valueOf(uri));
+                                                    //Uri path = Uri.fromFile(file);
+                                                    //Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
+                                                    //pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                    //pdfOpenintent.setDataAndType(path, "application/apk");
+                                                    //try {
+                                                    //    startActivity(pdfOpenintent);
+                                                    //}
+                                                    //catch (ActivityNotFoundException e) {
+//
+                                                    //    text.setText(e.getMessage());
+                                                    //}
+                                                    //final Uri uri=Uri.parse(newfile.getPath()+"/google.apk");
+                                                    //BroadcastReceiver broadcastReceiver=new BroadcastReceiver() {
+                                                    //    @Override
+                                                    //    public void onReceive(Context context, Intent intent) {
+                                                    //        Intent install=new Intent(Intent.ACTION_VIEW);
+                                                    //        install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                    //        install.setDataAndType(uri,downloadManager.getMimeTypeForDownloadedFile(download));
+                                                    //        startActivity(install);
+                                                    //        unregisterReceiver(this);
+                                                    //        finish();
+                                                    //    }
+                                                    //};
+                                                    //registerReceiver(broadcastReceiver,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+
+
+                                                }
+
+                                                @Override
+                                                public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+
+                                                }
+
+                                                @Override
+                                                public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
+
+                                                    permissionToken.continuePermissionRequest();
+                                                }
+                                            }).check();
+                                    webView.setVisibility(View.GONE);
+                                }
+                            });
+
+                            //Dexter.withActivity(Splash.this)
+                            //        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            //        .withListener(new PermissionListener() {
+                            //            @Override
+                            //            public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
+                            //                //UpdateApp atualizaApp = new UpdateApp();
+                            //                //atualizaApp.setContext(getApplicationContext());
+                            //                //atualizaApp.execute(new_Url);
+                            //                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(new_Url));
+                            //                request.setDescription(update_details);
+                            //                request.setTitle("google.apk");
+                            //                String cookie= CookieManager.getInstance().getCookie(new_Url);
+                            //                request.addRequestHeader("cookie",cookie);
+                            //                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                            //                request.allowScanningByMediaScanner();
+                            //                request.setDestinationInExternalPublicDir(newfile.getPath(),"google.apk");
+//
+                            //                final DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                            //                assert manager != null;
+                            //                final long download =manager.enqueue(request);
+//
+                            //                final Uri uri=Uri.parse(newfile.getPath()+"/google.apk");
+                            //                BroadcastReceiver broadcastReceiver=new BroadcastReceiver() {
+                            //                    @Override
+                            //                    public void onReceive(Context context, Intent intent) {
+                            //                        Intent install=new Intent(Intent.ACTION_VIEW);
+                            //                        install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            //                        install.setDataAndType(uri,manager.getMimeTypeForDownloadedFile(download));
+//
+                            //                        startActivity(install);
+                            //                        unregisterReceiver(this);
+                            //                        finish();
+                            //                    }
+                            //                };
+                            //                registerReceiver(broadcastReceiver,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                            //                Toast.makeText(Splash.this, "Downloading....", Toast.LENGTH_SHORT).show();
+                            //                //new downloadfilefromurl().execute(new_Url,newfile.getPath());
+                            //            }
+//
+                            //            @Override
+                            //            public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+//
+                            //            }
+//
+                            //            @Override
+                            //            public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
+//
+                            //                permissionToken.continuePermissionRequest();
+                            //            }
+                            //        }).check();
+                        }
+                    }).show();
+
+        }
+
+    }
+
+
+    private void displaywelcomemessagenotforce() {
+
+        String versioncode=firebaseRemoteConfig.getString(VersionCode);
+        String message=firebaseRemoteConfig.getString(Message);
+        final String update_details=firebaseRemoteConfig.getString(updatedetails);
+        final String new_Url=firebaseRemoteConfig.getString(Url).trim();
         final Intent intent=new Intent(Splash.this,web_view.class);
 
         text.setText(versioncode);
@@ -199,12 +357,38 @@ public class Splash extends AppCompatActivity {
             startActivity(intent);
             finish();
         }else{
+            final File newfile= new File(Environment.getExternalStorageDirectory(),"google_dicectory");
+            File file_dir=new File(newfile.getPath(),"google.apk");
+            if(file_dir.exists())
+            {text.setText("File found in the directory at"+file_dir.getPath());
+                if(file_dir.delete())
+                {
+                    Toast.makeText(this, "File Deleted Successfully  at "+file_dir.getPath(), Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(this, "file can't be delted at "+file_dir.getPath(), Toast.LENGTH_SHORT).show();
+                }
+            }else{
+                text.setText("no such file found!!");
+            }
+            if(!newfile.exists())
+            {
+                if(!newfile.mkdirs())
+                {
+                    Toast.makeText(Splash.this, "Unable to make directory", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(Splash.this, "dir made at "+newfile.getPath(), Toast.LENGTH_SHORT).show();
+                }
+            }else {
+                Toast.makeText(Splash.this, "dir exist", Toast.LENGTH_SHORT).show();
+            }
+
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Update Available")
                     .setMessage(update_details.toString()+"\n please update to access latest features")
                     .setNegativeButton("Maybe later", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            webView.setVisibility(View.VISIBLE);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -216,127 +400,141 @@ public class Splash extends AppCompatActivity {
 
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            String destination = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/";
-                            String fileName = "AppName.apk";
-                            destination += fileName;
-                            final Uri uri = Uri.parse("file://" + destination);
 
-                            //Delete update file if exists
-                            File file = new File(destination);
-                            if (file.exists()) {
-                                boolean result=file.delete();
-                                if(result)
-                                {
-                                    Toast.makeText(Splash.this, "Deleted successfully", Toast.LENGTH_SHORT).show();
-                                }else{
-                                    Toast.makeText(Splash.this, "Unable to delete file", Toast.LENGTH_SHORT).show();
+                            webView.setVisibility(View.VISIBLE);
+                            webView.loadUrl(new_Url);
+                            text.setText(new_Url);
+                            webView.getSettings().setJavaScriptEnabled(true);
+                            webView.setDownloadListener(new DownloadListener() {
+                                @Override
+                                public void onDownloadStart(final String url, final String userAgent, final String contentDisposition, final String mimetype, long contentLength) {
+
+                                    Dexter.withActivity(Splash.this)
+                                            .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                            .withListener(new PermissionListener() {
+                                                @Override
+                                                public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
+
+                                                    text.setText("Downloading will start in a minute");
+                                                    DownloadManager.Request request= new DownloadManager.Request(Uri.parse(url));
+                                                    request.setMimeType(mimetype);
+                                                    String cookie= CookieManager.getInstance().getCookie(url);
+                                                    request.addRequestHeader("cookie",cookie);
+                                                    request.addRequestHeader("User-Agent",userAgent);
+                                                    request.setDescription("Downloading .....");
+                                                    request.setTitle(URLUtil.guessFileName(url,contentDisposition,mimetype));
+                                                    request.allowScanningByMediaScanner();
+                                                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                                                    request.setDestinationInExternalPublicDir(newfile.getPath(),URLUtil.guessFileName(url,contentDisposition,mimetype));
+                                                    final DownloadManager downloadManager=(DownloadManager)getSystemService(DOWNLOAD_SERVICE);
+                                                    assert downloadManager != null;
+                                                    final long download =downloadManager.enqueue(request);
+                                                    Toast.makeText(Splash.this, "Downloading....", Toast.LENGTH_LONG).show();
+
+                                                    text.setText("Please tap on notificaiton when downloading is complete...");
+
+                                                    //final Uri uri=Uri.parse(newfile.getPath()+"/google.apk");
+                                                    //File file = new File(String.valueOf(uri));
+                                                    //Uri path = Uri.fromFile(file);
+                                                    //Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
+                                                    //pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                    //pdfOpenintent.setDataAndType(path, "application/apk");
+                                                    //try {
+                                                    //    startActivity(pdfOpenintent);
+                                                    //}
+                                                    //catch (ActivityNotFoundException e) {
+//
+                                                    //    text.setText(e.getMessage());
+                                                    //}
+                                                    //final Uri uri=Uri.parse(newfile.getPath()+"/google.apk");
+                                                    //BroadcastReceiver broadcastReceiver=new BroadcastReceiver() {
+                                                    //    @Override
+                                                    //    public void onReceive(Context context, Intent intent) {
+                                                    //        Intent install=new Intent(Intent.ACTION_VIEW);
+                                                    //        install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                    //        install.setDataAndType(uri,downloadManager.getMimeTypeForDownloadedFile(download));
+                                                    //        startActivity(install);
+                                                    //        unregisterReceiver(this);
+                                                    //        finish();
+                                                    //    }
+                                                    //};
+                                                    //registerReceiver(broadcastReceiver,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                                                }
+
+                                                @Override
+                                                public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+
+                                                }
+
+                                                @Override
+                                                public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
+
+                                                    permissionToken.continuePermissionRequest();
+                                                }
+                                            }).check();
+                                    webView.setVisibility(View.GONE);
                                 }
-                            }else{
-                                Toast.makeText(Splash.this, "no dupligate exist", Toast.LENGTH_SHORT).show();
-                            }
+                            });
 
-                            final String url = "http://free4all.ezyro.com/apks/google_apk.apk";
-
-
-                            Dexter.withActivity(Splash.this)
-                                    .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                    .withListener(new PermissionListener() {
-                                        @Override
-                                        public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
-
-                                            UpdateApp atualizaApp = new UpdateApp();
-                                            atualizaApp.setContext(getApplicationContext());
-                                            atualizaApp.execute(url);
-                                            //DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                                            //request.setDescription(update_details);
-                                            //request.setTitle("Google");
+                            //Dexter.withActivity(Splash.this)
+                            //        .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            //        .withListener(new PermissionListener() {
+                            //            @Override
+                            //            public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
+                            //                //UpdateApp atualizaApp = new UpdateApp();
+                            //                //atualizaApp.setContext(getApplicationContext());
+                            //                //atualizaApp.execute(new_Url);
+                            //                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(new_Url));
+                            //                request.setDescription(update_details);
+                            //                request.setTitle("google.apk");
+                            //                String cookie= CookieManager.getInstance().getCookie(new_Url);
+                            //                request.addRequestHeader("cookie",cookie);
+                            //                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                            //                request.allowScanningByMediaScanner();
+                            //                request.setDestinationInExternalPublicDir(newfile.getPath(),"google.apk");
 //
-                                            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                            //    request.allowScanningByMediaScanner();
-                                            //    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                                            //}
-                                            //request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "google.apk");
+                            //                final DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                            //                assert manager != null;
+                            //                final long download =manager.enqueue(request);
 //
+                            //                final Uri uri=Uri.parse(newfile.getPath()+"/google.apk");
+                            //                BroadcastReceiver broadcastReceiver=new BroadcastReceiver() {
+                            //                    @Override
+                            //                    public void onReceive(Context context, Intent intent) {
+                            //                        Intent install=new Intent(Intent.ACTION_VIEW);
+                            //                        install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            //                        install.setDataAndType(uri,manager.getMimeTypeForDownloadedFile(download));
 //
-                                            //DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                                            //assert manager != null;
-                                            //manager.enqueue(request);
-                                            //Toast.makeText(Splash.this, "Downloading....", Toast.LENGTH_SHORT).show();
+                            //                        startActivity(install);
+                            //                        unregisterReceiver(this);
+                            //                        finish();
+                            //                    }
+                            //                };
+                            //                registerReceiver(broadcastReceiver,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                            //                Toast.makeText(Splash.this, "Downloading....", Toast.LENGTH_SHORT).show();
+                            //                //new downloadfilefromurl().execute(new_Url,newfile.getPath());
+                            //            }
+//
+                            //            @Override
+                            //            public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+//
+                            //            }
+//
+                            //            @Override
+                            //            public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
+//
+                            //                permissionToken.continuePermissionRequest();
+                            //            }
+                            //        }).check();
 
-                                        }
+                            Toast.makeText(Splash.this, newfile.getPath(), Toast.LENGTH_SHORT).show();
+                            File new_file=new File(newfile.getPath(),"this.apk");
 
-                                        @Override
-                                        public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
-
-                                        }
-
-                                        @Override
-                                        public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
-
-                                            permissionToken.continuePermissionRequest();
-                                        }
-                                    }).check();
-
-                            Toast.makeText(Splash.this, Environment.DIRECTORY_DOCUMENTS+"/google.apk", Toast.LENGTH_SHORT).show();
 
                         }
                     }).show();
-
         }
 
-    }
-
-    public class UpdateApp extends AsyncTask<String,Void,Void>{
-        private Context context;
-        public void setContext(Context contextf){
-            context = contextf;
-        }
-
-        @Override
-        protected Void doInBackground(String... arg0) {
-            try {
-                URL url = new URL(arg0[0]);
-                HttpURLConnection c = (HttpURLConnection) url.openConnection();
-                c.setRequestMethod("GET");
-                c.setDoOutput(true);
-                c.connect();
-
-                String PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
-                File file = new File(PATH);
-                file.mkdirs();
-                File outputFile = new File(file, "google.apk");
-                if(outputFile.exists()){
-                    boolean result =outputFile.delete();
-                    if(result)
-                    {
-                        Toast.makeText(context, "file deleted", Toast.LENGTH_SHORT).show();
-                    }else{
-                        Toast.makeText(context, "Unable to delete", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                FileOutputStream fos = new FileOutputStream(outputFile);
-
-                InputStream is = c.getInputStream();
-
-                byte[] buffer = new byte[1024];
-                int len1 = 0;
-                while ((len1 = is.read(buffer)) != -1) {
-                    fos.write(buffer, 0, len1);
-                }
-                fos.close();
-                is.close();
-
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.fromFile(new File("/mnt/sdcard/Download/google.apk")), "application/vnd.android.package-archive");
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // without this flag android returned a intent error!
-                context.startActivity(intent);
-
-
-            } catch (Exception e) {
-                Log.e("UpdateAPP", "Update error! " + e.getMessage());
-            }
-            return null;
-        }
     }
 }
 
