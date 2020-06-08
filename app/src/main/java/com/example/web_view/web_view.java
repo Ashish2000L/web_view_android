@@ -89,7 +89,7 @@ public class web_view extends AppCompatActivity {
         overridePendingTransition(R.anim.do_no_move, R.anim.do_no_move);
         setContentView(R.layout.activity_web_view);
 
-
+        firebaseRemoteConfig=FirebaseRemoteConfig.getInstance();
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder().setDeveloperModeEnabled(BuildConfig.DEBUG).build();
         firebaseRemoteConfig.setConfigSettings(configSettings);
         firebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
