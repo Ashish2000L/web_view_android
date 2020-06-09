@@ -366,8 +366,15 @@ public class Splash extends AppCompatActivity {
 
                                                     //final Uri uri=Uri.parse(new File(Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype)).getPath());
 
+                                                    String destination = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/";
+                                                    String fileName = "apk_update.apk";
+                                                    destination += fileName;
+                                                    final Uri new_uri = Uri.parse("file://" + destination);
                                                     text.setText(url);
+                                                    text.setText("Downloading will start in a minute...");
                                                     DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+
+                                                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE|DownloadManager.Request.NETWORK_WIFI);
                                                     request.setMimeType(mimetype);
                                                     String cookie = CookieManager.getInstance().getCookie(url);
                                                     request.addRequestHeader("cookie", cookie);
@@ -376,8 +383,9 @@ public class Splash extends AppCompatActivity {
                                                     request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
                                                     request.allowScanningByMediaScanner();
                                                     request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                                                    request.setDestinationUri(new_uri);
                                                     //String result=request.setDestinationInExternalFilesDir(Splash.this,Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype)).toString();
-                                                    request.setDestinationUri(FileProvider.getUriForFile(Splash.this,Splash.this.getApplicationContext().getPackageName()+".provider",file_dir));
+                                                    //request.setDestinationUri(FileProvider.getUriForFile(Splash.this,Splash.this.getApplicationContext().getPackageName()+".provider",file_dir));
                                                     //request.setDestinationInExternalFilesDir(Splash.this, Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
                                                     //request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype));
                                                     final DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
@@ -385,7 +393,7 @@ public class Splash extends AppCompatActivity {
                                                     final long download = downloadManager.enqueue(request);
                                                     Toast.makeText(Splash.this, "Downloading....", Toast.LENGTH_LONG).show();
 
-                                                    Uri uri_for_file = downloadManager.getUriForDownloadedFile(download);
+                                                    final Uri uri_for_file = downloadManager.getUriForDownloadedFile(download);
                                                     text.setText("Please tap on notificaiton when downloading is complete...");
 
                                                     //final Uri uri=Uri.parse(newfile.getPath()+"/google.apk");
@@ -395,26 +403,30 @@ public class Splash extends AppCompatActivity {
 
                                                             //File file = new File(String.valueOf(uri));
                                                             //Uri path = Uri.fromFile(file);
+                                                            //Uri path=uri_for_file;
+                                                            File file_dir=new File("/storage/emulated/0/Download/",URLUtil.guessFileName(url, contentDisposition, mimetype));
                                                             Uri path = FileProvider.getUriForFile(context,context.getApplicationContext().getPackageName()+".provider",file_dir);
+                                                            if(file_dir.setReadable(true,false))
+                                                            {
+                                                                Toast.makeText(context, "made readble", Toast.LENGTH_LONG).show();
+                                                            }
                                                             Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
                                                             pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-                                                            pdfOpenintent.setDataAndType(path, mimetype);
+                                                            pdfOpenintent.setDataAndType(path, downloadManager.getMimeTypeForDownloadedFile(download));
                                                             pdfOpenintent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                                            try {
-                                                                context.startActivity(pdfOpenintent);
+                                                            pdfOpenintent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                                                            context.grantUriPermission(BuildConfig.APPLICATION_ID,path,Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                                                            context.startActivity(pdfOpenintent);
 
-                                                            } catch (Exception e) {
 
-                                                                text.setText(e.getMessage());
-                                                            }
 
                                                             //Intent install=new Intent(Intent.ACTION_VIEW);
                                                             //install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                                             //install.setDataAndType(uri,downloadManager.getMimeTypeForDownloadedFile(download));
                                                             //startActivity(install);
-                                                            unregisterReceiver(this);
-                                                            finish();
+                                                            context.unregisterReceiver(this);
+                                                            //finish();
                                                         }
                                                     };
                                                     registerReceiver(broadcastReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
@@ -520,7 +532,7 @@ public class Splash extends AppCompatActivity {
         mDestinationUri = Uri.withAppendedPath(Uri.fromFile(base), subPath);
     }
 
-    public class GenericFileProvider extends FileProvider {}
+    //public class GenericFileProvider extends FileProvider {}
 }
 
 
