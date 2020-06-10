@@ -6,15 +6,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.annotation.SuppressLint;
+
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.pm.ActivityInfo;
-import android.content.res.Resources;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -24,20 +22,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Message;
-import android.provider.Browser;
-import android.util.Log;
-import android.util.TypedValue;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewAnimationUtils;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
+
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.URLUtil;
@@ -50,9 +39,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import static java.lang.Thread.sleep;
+
 
 import com.airbnb.lottie.LottieAnimationView;
+//import com.google.android.gms.ads.AdRequest;
+////import com.google.android.gms.ads.AdView;
+//import com.google.android.gms.ads.AdView;
+//import com.google.android.gms.ads.MobileAds;
+//import com.google.android.gms.ads.reward.RewardItem;
+//import com.google.android.gms.ads.reward.RewardedVideoAd;
+//import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
@@ -65,7 +61,7 @@ import com.karumi.dexter.listener.single.PermissionListener;
 
 import java.util.Objects;
 
-public class web_view extends AppCompatActivity {
+public class web_view extends AppCompatActivity  {
     private WebView webView;
     private String webviewurl="webview_url";//https://newsverify197155133.wordpress.com/";
     private ProgressBar progressweb;
@@ -78,6 +74,9 @@ public class web_view extends AppCompatActivity {
     SwipeRefreshLayout swipeRefreshLayout;
     FirebaseRemoteConfig firebaseRemoteConfig;
     Thread time;
+    private static final String TAG = "web_view";
+
+    //private RewardedVideoAd mRewardedVideoAd;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +87,15 @@ public class web_view extends AppCompatActivity {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         overridePendingTransition(R.anim.do_no_move, R.anim.do_no_move);
         setContentView(R.layout.activity_web_view);
+
+        //mAdView = findViewById(R.id.adView);
+        //AdRequest adRequest = new AdRequest.Builder().build();
+        //mAdView.loadAd(adRequest);
+
+        //MobileAds.initialize(this, "ca-app-pub-7816115484592490~6598652731");
+        //// Use an activity context to get the rewarded video instance.
+        //mRewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);
+        //mRewardedVideoAd.setRewardedVideoAdListener(web_view.this);
 
         firebaseRemoteConfig=FirebaseRemoteConfig.getInstance();
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder().setDeveloperModeEnabled(BuildConfig.DEBUG).build();
@@ -138,7 +146,10 @@ public class web_view extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+
               refresh_check_Connection();
+
+
 
             }
         });
@@ -206,6 +217,8 @@ public class web_view extends AppCompatActivity {
         });
     }
 
+
+
     //to get the url to be seen by the user in webview from firebase
     private String getdetails()
     {
@@ -244,7 +257,11 @@ public class web_view extends AppCompatActivity {
     public void onBackPressed() {
         if(webView.canGoBack())
         {
+
             webView.goBack();
+
+
+
         }else {
             AlertDialog.Builder builder=new AlertDialog.Builder(this);
             builder.setMessage("Are you sure you want to exit?")
@@ -366,6 +383,8 @@ public class web_view extends AppCompatActivity {
         webView.saveState(outState);
 
     }
+
+
 
 
     class Browser
