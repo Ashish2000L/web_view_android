@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.web_view">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -18,6 +19,7 @@
         android:theme="@style/AppTheme"
         android:networkSecurityConfig="@xml/network_security_config"
         android:usesCleartextTraffic="true">
+
         <provider
             android:name=".GenericFileProvider"
             android:authorities="com.example.web_view.provider"
@@ -27,6 +29,12 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
         </provider>
+
+        <receiver android:name=".testrecever">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_INSTALL"/>
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".Splash"
             android:screenOrientation="portrait" >

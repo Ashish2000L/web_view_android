@@ -43,7 +43,9 @@ import com.karumi.dexter.listener.single.PermissionListener;
 import java.io.File;
 import java.util.Objects;
 
+import static android.Manifest.permission.INSTALL_PACKAGES;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.REQUEST_INSTALL_PACKAGES;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static java.lang.Thread.sleep;
 
@@ -67,7 +69,7 @@ public class Splash extends AppCompatActivity {
     private  DownloadManager downloadManager;
     long download;
 
-
+    int mypermissionforinstalingpackage=150;
     int mypermissionrequestread=101;
 
     ProgressDialog progressDialog;
@@ -369,7 +371,7 @@ public class Splash extends AppCompatActivity {
                                             String cookie = CookieManager.getInstance().getCookie(url);
                                             request.addRequestHeader("cookie", cookie);
                                             request.addRequestHeader("User-Agent", userAgent);
-                                            request.setDescription("Downloading .....");
+                                            request.setDescription(fileName);
                                             request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
                                             request.allowScanningByMediaScanner();
                                             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
@@ -397,8 +399,11 @@ public class Splash extends AppCompatActivity {
                                                     //}
 
                                                     context.grantUriPermission(BuildConfig.APPLICATION_ID, path, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                                                    if (ContextCompat.checkSelfPermission(Splash.this, READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                                                        ActivityCompat.requestPermissions(Splash.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},mypermissionrequestread);
+                                                    if (ContextCompat.checkSelfPermission(Splash.this, INSTALL_PACKAGES) != PackageManager.PERMISSION_GRANTED) {
+                                                        ActivityCompat.requestPermissions(Splash.this,new String[]{READ_EXTERNAL_STORAGE},mypermissionrequestread);
+                                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                                            ActivityCompat.requestPermissions(Splash.this,new String[]{REQUEST_INSTALL_PACKAGES},mypermissionrequestread);
+                                                        }
                                                         //Dexter.withActivity(Splash.this)
                                                         //        .withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
                                                         //        .withListener(new PermissionListener() {
@@ -437,7 +442,9 @@ public class Splash extends AppCompatActivity {
                                                     //finish();
                                                 }
                                             };
-                                            registerReceiver(broadcastReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                                registerReceiver(broadcastReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), READ_EXTERNAL_STORAGE,null);
+                                            }
                                         }
 
                                         @Override
@@ -482,6 +489,7 @@ public class Splash extends AppCompatActivity {
                     //                    public void onReceive(Context context, Intent intent) {
                     //                        Intent install=new Intent(Intent.ACTION_VIEW);
                     //                        install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
                     //                        install.setDataAndType(uri,manager.getMimeTypeForDownloadedFile(download));
 //
                     //                        startActivity(install);
@@ -513,15 +521,28 @@ public class Splash extends AppCompatActivity {
 
     }
 
+   @RequiresApi(api = Build.VERSION_CODES.M)
    @Override
    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
+        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
        if (requestCode == mypermissionrequestread) {
            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+               //null
+           }else{
+               finishAffinity();
+           }
+       }else if(requestCode==mypermissionforinstalingpackage){
+           if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
                final Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
                pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                pdfOpenintent.setDataAndType(path, downloadManager.getMimeTypeForDownloadedFile(download));
                context.startActivity(pdfOpenintent);
+               //testrecever testrecever=new testrecever();
+               //testrecever.onReceive(context,pdfOpenintent);
+               //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+               //    registerReceiver(testrecever,new IntentFilter(Intent.ACTION_INSTALL_PACKAGE),Manifest.permission.REQUEST_INSTALL_PACKAGES,null);
+               //}
            }else{
                finishAffinity();
            }
