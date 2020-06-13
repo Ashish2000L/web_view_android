@@ -28,6 +28,7 @@ import android.webkit.DownloadListener;
 import android.webkit.URLUtil;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
+import android.widget.Space;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.blogspot.atifsoftwares.animatoolib.Animatoo;
@@ -35,13 +36,17 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.karumi.dexter.listener.single.PermissionListener;
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
+import java.util.ServiceLoader;
 
 import static android.Manifest.permission.INSTALL_PACKAGES;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
@@ -351,113 +356,187 @@ public class Splash extends AppCompatActivity {
                             }
 
                             Dexter.withActivity(Splash.this)
-                                    .withPermission(WRITE_EXTERNAL_STORAGE)
-                                    .withListener(new PermissionListener() {
+                                    .withPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                    .withListener(new MultiplePermissionsListener() {
                                         @Override
-                                        public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
+                                        public void onPermissionsChecked(MultiplePermissionsReport report) {
 
-                                            //final Uri uri=Uri.parse(new File(Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype)).getPath());
+                                            if(report.areAllPermissionsGranted()) {
 
-                                            String destination = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/";
-                                            String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
-                                            destination += fileName;
-                                            final Uri new_uri = Uri.parse("file://" + destination);
-                                            text.setText(url);
-                                            text.setText("Downloading will start in a minute...");
-                                            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                                                String destination = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/";
+                                                String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
+                                                destination += fileName;
+                                                final Uri new_uri = Uri.parse("file://" + destination);
+                                                text.setText("Downloading will start in a minute...");
 
-                                            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-                                            request.setMimeType(mimetype);
-                                            String cookie = CookieManager.getInstance().getCookie(url);
-                                            request.addRequestHeader("cookie", cookie);
-                                            request.addRequestHeader("User-Agent", userAgent);
-                                            request.setDescription(fileName);
-                                            request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
-                                            request.allowScanningByMediaScanner();
-                                            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-                                            request.setDestinationUri(new_uri);
-                                            //String result=request.setDestinationInExternalFilesDir(Splash.this,Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype)).toString();
-                                            //request.setDestinationUri(FileProvider.getUriForFile(Splash.this,Splash.this.getApplicationContext().getPackageName()+".provider",file_dir));
-                                            //request.setDestinationInExternalFilesDir(Splash.this, Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
-                                            //request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype));
-                                            downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                                            assert downloadManager != null;
-                                             download = downloadManager.enqueue(request);
-                                            Toast.makeText(Splash.this, "Downloading....", Toast.LENGTH_LONG).show();
+                                                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
-                                            final Uri uri_for_file = downloadManager.getUriForDownloadedFile(download);
-                                            text.setText("Please tap on notificaiton when downloading is complete...");
+                                                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+                                                request.setMimeType(mimetype);
+                                                String cookie = CookieManager.getInstance().getCookie(url);
+                                                request.addRequestHeader("cookie", cookie);
+                                                request.addRequestHeader("User-Agent", userAgent);
+                                                request.setDescription(fileName);
+                                                request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
+                                                request.allowScanningByMediaScanner();
+                                                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                                                request.setDestinationUri(new_uri);
+                                                downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                                                assert downloadManager != null;
+                                                download = downloadManager.enqueue(request);
 
-                                            //final Uri uri=Uri.parse(newfile.getPath()+"/google.apk");
-                                            BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-                                                @Override
-                                                public void onReceive(final Context context, Intent intent) {
-                                                    File file_dir = new File("/storage/emulated/0/Download/", URLUtil.guessFileName(url, contentDisposition, mimetype));
-                                                    path = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", file_dir);
-                                                    //if (file_dir.setReadable(true, false)) {
-                                                    //    Toast.makeText(context, "made readble", Toast.LENGTH_LONG).show();
-                                                    //}
+                                                Toast.makeText(Splash.this, "Downloading....", Toast.LENGTH_LONG).show();
 
-                                                    context.grantUriPermission(BuildConfig.APPLICATION_ID, path, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                                                    if (ContextCompat.checkSelfPermission(Splash.this, INSTALL_PACKAGES) != PackageManager.PERMISSION_GRANTED) {
-                                                        ActivityCompat.requestPermissions(Splash.this,new String[]{READ_EXTERNAL_STORAGE},mypermissionrequestread);
-                                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                                            ActivityCompat.requestPermissions(Splash.this,new String[]{REQUEST_INSTALL_PACKAGES},mypermissionrequestread);
+                                                text.setText("Please tap on notificaiton when downloading is complete...");
+
+                                                File file_dir = new File("/storage/emulated/0/Download/", URLUtil.guessFileName(url, contentDisposition, mimetype));
+                                                path = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", file_dir);
+
+                                               BroadcastReceiver new_brpdcast = new BroadcastReceiver() {
+                                                   @Override
+                                                   public void onReceive(final Context context, Intent intent) {
+                                                       final Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
+                                                       pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                       pdfOpenintent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                                       pdfOpenintent.setDataAndType(path, downloadManager.getMimeTypeForDownloadedFile(download));
+                                                       context.startActivity(pdfOpenintent);
+                                                       context.unregisterReceiver(this);
+                                                   }
+                                               };
+                                               registerReceiver(new_brpdcast, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+                                            }else if(report.isAnyPermissionPermanentlyDenied())
+                                            {
+                                                text.setText("Please provide all permission to proceed further!!");
+                                                Thread new_activity = new Thread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+
+                                                        try {
+                                                            sleep (3000);
+                                                        } catch (InterruptedException e) {
+                                                            e.printStackTrace();
                                                         }
-                                                        //Dexter.withActivity(Splash.this)
-                                                        //        .withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                                                        //        .withListener(new PermissionListener() {
-                                                        //            @Override
-                                                        //            public void onPermissionGranted(PermissionGrantedResponse response) {
-                                                        //                final Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
-                                                        //                pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                                        //                pdfOpenintent.setDataAndType(path, downloadManager.getMimeTypeForDownloadedFile(download));
-                                                        //                context.startActivity(pdfOpenintent);
-                                                        //            }
-//
-                                                        //            @Override
-                                                        //            public void onPermissionDenied(PermissionDeniedResponse response) {
-                                                        //
-                                                        //            }
-//
-                                                        //            @Override
-                                                        //            public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
-//
-                                                        //                token.continuePermissionRequest();
-                                                        //            }
-                                                        //        }).check();
-                                                    }else{
-                                                        final Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
-                                                        pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                                        pdfOpenintent.setDataAndType(path, downloadManager.getMimeTypeForDownloadedFile(download));
-                                                        context.startActivity(pdfOpenintent);
                                                     }
-
-
-                                                    //Intent install=new Intent(Intent.ACTION_VIEW);
-                                                    //install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                                    //install.setDataAndType(uri,downloadManager.getMimeTypeForDownloadedFile(download));
-                                                    //startActivity(install);
-                                                    context.unregisterReceiver(this);
-                                                    //finish();
-                                                }
-                                            };
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                                registerReceiver(broadcastReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), READ_EXTERNAL_STORAGE,null);
+                                                });
+                                                new_activity.start();
                                             }
                                         }
 
                                         @Override
-                                        public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+                                        public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
 
-                                        }
-
-                                        @Override
-                                        public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
-
-                                            permissionToken.continuePermissionRequest();
+                                            token.continuePermissionRequest();
                                         }
                                     }).check();
+  //                       Dexter.withActivity(Splash.this)
+  //                               .withPermissions(WRITE_EXTERNAL_STORAGE)
+  //                               .withListener(new PermissionListener() {
+  //                                   @Override
+  //                                   public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
+
+  //                                       //final Uri uri=Uri.parse(new File(Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype)).getPath());
+
+  //                                       String destination = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/";
+  //                                       String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
+  //                                       destination += fileName;
+  //                                       final Uri new_uri = Uri.parse("file://" + destination);
+  //                                       text.setText(url);
+  //                                       text.setText("Downloading will start in a minute...");
+  //                                       DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+
+  //                                       request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+  //                                       request.setMimeType(mimetype);
+  //                                       String cookie = CookieManager.getInstance().getCookie(url);
+  //                                       request.addRequestHeader("cookie", cookie);
+  //                                       request.addRequestHeader("User-Agent", userAgent);
+  //                                       request.setDescription(fileName);
+  //                                       request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
+  //                                       request.allowScanningByMediaScanner();
+  //                                       request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+  //                                       request.setDestinationUri(new_uri);
+  //                                       //String result=request.setDestinationInExternalFilesDir(Splash.this,Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype)).toString();
+  //                                       //request.setDestinationUri(FileProvider.getUriForFile(Splash.this,Splash.this.getApplicationContext().getPackageName()+".provider",file_dir));
+  //                                       //request.setDestinationInExternalFilesDir(Splash.this, Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
+  //                                       //request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,URLUtil.guessFileName(url,contentDisposition,mimetype));
+  //                                       downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+  //                                       assert downloadManager != null;
+  //                                        download = downloadManager.enqueue(request);
+  //                                       Toast.makeText(Splash.this, "Downloading....", Toast.LENGTH_LONG).show();
+
+  //                                       final Uri uri_for_file = downloadManager.getUriForDownloadedFile(download);
+  //                                       text.setText("Please tap on notificaiton when downloading is complete...");
+
+  //                                       //final Uri uri=Uri.parse(newfile.getPath()+"/google.apk");
+  //                                       BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+  //                                           @Override
+  //                                           public void onReceive(final Context context, Intent intent) {
+  //                                               File file_dir = new File("/storage/emulated/0/Download/", URLUtil.guessFileName(url, contentDisposition, mimetype));
+  //                                               path = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", file_dir);
+  //                                               //if (file_dir.setReadable(true, false)) {
+  //                                               //    Toast.makeText(context, "made readble", Toast.LENGTH_LONG).show();
+  //                                               //}
+
+  //                                               context.grantUriPermission(BuildConfig.APPLICATION_ID, path, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+  //                                               if (ContextCompat.checkSelfPermission(Splash.this, INSTALL_PACKAGES) != PackageManager.PERMISSION_GRANTED) {
+  //                                                   ActivityCompat.requestPermissions(Splash.this,new String[]{READ_EXTERNAL_STORAGE},mypermissionrequestread);
+  //                                                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+  //                                                       ActivityCompat.requestPermissions(Splash.this,new String[]{REQUEST_INSTALL_PACKAGES},mypermissionrequestread);
+  //                                                   }
+  //                                                   //Dexter.withActivity(Splash.this)
+  //                                                   //        .withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+  //                                                   //        .withListener(new PermissionListener() {
+  //                                                   //            @Override
+  //                                                   //            public void onPermissionGranted(PermissionGrantedResponse response) {
+  //                                                   //                final Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
+  //                                                   //                pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+  //                                                   //                pdfOpenintent.setDataAndType(path, downloadManager.getMimeTypeForDownloadedFile(download));
+  //                                                   //                context.startActivity(pdfOpenintent);
+  //                                                   //            }
+//
+  //                                                   //            @Override
+  //                                                   //            public void onPermissionDenied(PermissionDeniedResponse response) {
+  //                                                   //
+  //                                                   //            }
+//
+  //                                                   //            @Override
+  //                                                   //            public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+//
+  //                                                   //                token.continuePermissionRequest();
+  //                                                   //            }
+  //                                                   //        }).check();
+  //                                               }else{
+  //                                                   final Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
+  //                                                   pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+  //                                                   pdfOpenintent.setDataAndType(path, downloadManager.getMimeTypeForDownloadedFile(download));
+  //                                                   context.startActivity(pdfOpenintent);
+  //                                               }
+
+
+  //                                               //Intent install=new Intent(Intent.ACTION_VIEW);
+  //                                               //install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+  //                                               //install.setDataAndType(uri,downloadManager.getMimeTypeForDownloadedFile(download));
+  //                                               //startActivity(install);
+  //                                               context.unregisterReceiver(this);
+  //                                               //finish();
+  //                                           }
+  //                                       };
+  //                                       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+  //                                           registerReceiver(broadcastReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), READ_EXTERNAL_STORAGE,null);
+  //                                       }
+  //                                   }
+
+  //                                   @Override
+  //                                   public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+
+  //                                   }
+
+  //                                   @Override
+  //                                   public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
+
+  //                                       permissionToken.continuePermissionRequest();
+  //                                   }
+  //                               }).check();
                             webView.setVisibility(View.GONE);
                         }
                     });
@@ -521,34 +600,34 @@ public class Splash extends AppCompatActivity {
 
     }
 
-   @RequiresApi(api = Build.VERSION_CODES.M)
-   @Override
-   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
-       if (requestCode == mypermissionrequestread) {
-           if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-               //null
-           }else{
-               finishAffinity();
-           }
-       }else if(requestCode==mypermissionforinstalingpackage){
-           if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
-               final Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
-               pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-               pdfOpenintent.setDataAndType(path, downloadManager.getMimeTypeForDownloadedFile(download));
-               context.startActivity(pdfOpenintent);
-               //testrecever testrecever=new testrecever();
-               //testrecever.onReceive(context,pdfOpenintent);
-               //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-               //    registerReceiver(testrecever,new IntentFilter(Intent.ACTION_INSTALL_PACKAGE),Manifest.permission.REQUEST_INSTALL_PACKAGES,null);
-               //}
-           }else{
-               finishAffinity();
-           }
-       }
-
-   }
+   //@RequiresApi(api = Build.VERSION_CODES.M)
+   //@Override
+   //public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//
+   //     super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+   //    if (requestCode == mypermissionrequestread) {
+   //        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+   //            //null
+   //        }else{
+   //            finishAffinity();
+   //        }
+   //    }else if(requestCode==mypermissionforinstalingpackage){
+   //        if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
+   //            final Intent pdfOpenintent = new Intent(Intent.ACTION_VIEW);
+   //            pdfOpenintent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+   //            pdfOpenintent.setDataAndType(path, downloadManager.getMimeTypeForDownloadedFile(download));
+   //            context.startActivity(pdfOpenintent);
+   //            //testrecever testrecever=new testrecever();
+   //            //testrecever.onReceive(context,pdfOpenintent);
+   //            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+   //            //    registerReceiver(testrecever,new IntentFilter(Intent.ACTION_INSTALL_PACKAGE),Manifest.permission.REQUEST_INSTALL_PACKAGES,null);
+   //            //}
+   //        }else{
+   //            finishAffinity();
+   //        }
+   //    }
+//
+   //}
 
     public void setDestinationInExternalFilesDir(Context context, String dirType,
                                                  String subPath) {
@@ -576,8 +655,6 @@ public class Splash extends AppCompatActivity {
         }
         mDestinationUri = Uri.withAppendedPath(Uri.fromFile(base), subPath);
     }
-
-    //public class GenericFileProvider extends FileProvider {}
 }
 
 

@@ -29,12 +29,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
         </provider>
-
-        <receiver android:name=".testrecever">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_INSTALL"/>
-            </intent-filter>
-        </receiver>
         <activity
             android:name=".Splash"
             android:screenOrientation="portrait" >
