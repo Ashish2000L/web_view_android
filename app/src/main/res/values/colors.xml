@@ -5,4 +5,7 @@
     <color name="colorAccent">#0D6F40</color>
     <color name="no_internet">#E10F405F</color>
     <color name="start_color">#944D66</color>
+    <color name="nav_graid_strt">#C30380A7</color>
+    <color name="nav_grid_mid">#AD409EC7</color>
+    <color name="nav_grid_end">#ffffff</color>
 </resources>
