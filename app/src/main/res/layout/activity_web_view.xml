@@ -54,4 +54,22 @@
         android:id="@+id/no_internet_text"
         android:visibility="gone"/>
 
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/drawer"
+        tools:openDrawer="start">
+
+        <com.google.android.material.navigation.NavigationView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/navmenu"
+            app:menu="@menu/nav_menu"
+            app:headerLayout="@layout/navheader"
+            android:background="@drawable/nav_gradient"
+            android:layout_gravity="start"
+            />
+
+
+    </androidx.drawerlayout.widget.DrawerLayout>
 </RelativeLayout>

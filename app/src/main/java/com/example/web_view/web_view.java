@@ -2,7 +2,11 @@ package com.example.web_view;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
@@ -22,6 +26,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 
 import android.view.Window;
@@ -38,18 +44,9 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-
-
 import com.airbnb.lottie.LottieAnimationView;
-//import com.google.android.gms.ads.AdRequest;
-////import com.google.android.gms.ads.AdView;
-//import com.google.android.gms.ads.AdView;
-//import com.google.android.gms.ads.MobileAds;
-//import com.google.android.gms.ads.reward.RewardItem;
-//import com.google.android.gms.ads.reward.RewardedVideoAd;
-//import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.karumi.dexter.Dexter;
@@ -74,6 +71,10 @@ public class web_view extends AppCompatActivity  {
     SwipeRefreshLayout swipeRefreshLayout;
     FirebaseRemoteConfig firebaseRemoteConfig;
     Thread time;
+    NavigationView navigationView;
+    ActionBarDrawerToggle toggle;
+    DrawerLayout drawerLayout;
+
     private static final String TAG = "web_view";
 
     //private RewardedVideoAd mRewardedVideoAd;
@@ -81,27 +82,21 @@ public class web_view extends AppCompatActivity  {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Objects.requireNonNull(getSupportActionBar()).hide();
+        //Objects.requireNonNull(getSupportActionBar()).hide();
         Window window=getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         overridePendingTransition(R.anim.do_no_move, R.anim.do_no_move);
         setContentView(R.layout.activity_web_view);
 
-        //mAdView = findViewById(R.id.adView);
-        //AdRequest adRequest = new AdRequest.Builder().build();
-        //mAdView.loadAd(adRequest);
-
-        //MobileAds.initialize(this, "ca-app-pub-7816115484592490~6598652731");
-        //// Use an activity context to get the rewarded video instance.
-        //mRewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);
-        //mRewardedVideoAd.setRewardedVideoAdListener(web_view.this);
-
         firebaseRemoteConfig=FirebaseRemoteConfig.getInstance();
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder().setDeveloperModeEnabled(BuildConfig.DEBUG).build();
         firebaseRemoteConfig.setConfigSettings(configSettings);
         firebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
 
+        navigationView=findViewById(R.id.navmenu);
+        drawerLayout=findViewById(R.id.drawer);
+        //Toolbar toolbar=findViewById(R.id.toolbar);
         anim_no_internet=findViewById(R.id.no_internet);
         swipeRefreshLayout=findViewById(R.id.swipe_refresh);
         background = findViewById(R.id.background);
@@ -110,6 +105,33 @@ public class web_view extends AppCompatActivity  {
         progressDialog=new ProgressDialog(this);
         progressweb=findViewById(R.id.progress);
         webView=findViewById(R.id.webview);
+
+        //setSupportActionBar(toolbar);
+        //toggle=new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.ok,R.string.app_name);
+        //drawerLayout.addDrawerListener(toggle);
+        //toggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+
+                switch (menuItem.getItemId())
+                {
+                    case R.id.home:
+                        Toast.makeText(web_view.this, "You tapped a home button", Toast.LENGTH_SHORT).show();
+                        drawerLayout.closeDrawer(GravityCompat.START);
+                        break;
+
+                    case R.id.settings:
+                        Toast.makeText(web_view.this, "You tapped on setting button", Toast.LENGTH_SHORT).show();
+                        drawerLayout.closeDrawer(GravityCompat.START);
+                        break;
+                }
+
+                return true;
+            }
+        });
+
 
         weburl=getdetails();
         if(savedInstanceState !=null){
@@ -129,7 +151,6 @@ public class web_view extends AppCompatActivity  {
             progressDialog.setMessage("Loading please wait...");
             webView.setWebViewClient(new Browser());
             webView.setWebChromeClient(new MyWebClient());
-            //webView.setWebChromeClient(new myChrome());
             checkConnection();
         }
 
