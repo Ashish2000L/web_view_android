@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -17,21 +16,63 @@
         android:outlineSpotShadowColor="@color/colorPrimaryDark"
         android:progress="20"
         android:visibility="gone"/>
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/swipe_refresh">
-        <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
-            <WebView
-                android:id="@+id/webview"
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:id="@+id/drawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:openDrawer="start">
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/navmenu"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="@drawable/nav_gradient"
+            app:headerLayout="@layout/navheader"
+            app:menu="@menu/nav_menu"
+            app:itemTextColor="@color/nav_grid_end"
+            app:itemIconTint="@color/nav_grid_end">
+
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fitsSystemWindows="true" />
-    </androidx.core.widget.NestedScrollView>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:text="version"
+                android:id="@+id/current_verion"
+                android:textAlignment="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/crafty_girls"
+                android:textColor="@color/nav_grid_end"
+                android:layout_marginBottom="20dp"/>
+        </com.google.android.material.navigation.NavigationView>
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <WebView
+                    android:id="@+id/webview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fitsSystemWindows="true" />
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/framelayout"/>
+
+            </androidx.core.widget.NestedScrollView>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
+    </androidx.drawerlayout.widget.DrawerLayout>
+
     <com.airbnb.lottie.LottieAnimationView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -54,22 +95,4 @@
         android:id="@+id/no_internet_text"
         android:visibility="gone"/>
 
-    <androidx.drawerlayout.widget.DrawerLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/drawer"
-        tools:openDrawer="start">
-
-        <com.google.android.material.navigation.NavigationView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:id="@+id/navmenu"
-            app:menu="@menu/nav_menu"
-            app:headerLayout="@layout/navheader"
-            android:background="@drawable/nav_gradient"
-            android:layout_gravity="start"
-            />
-
-
-    </androidx.drawerlayout.widget.DrawerLayout>
 </RelativeLayout>

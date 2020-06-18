@@ -71,11 +71,13 @@ public class Splash extends AppCompatActivity {
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder().setDeveloperModeEnabled(BuildConfig.DEBUG).build();
         firebaseRemoteConfig.setConfigSettings(configSettings);
         firebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults);
+        loading = findViewById(R.id.loading);
+        text = findViewById(R.id.version);
+        text.setText(BuildConfig.VERSION_NAME);
 
         getdetails();
 
-        loading = findViewById(R.id.loading);
-        text = findViewById(R.id.version);
+
 
     }
 
