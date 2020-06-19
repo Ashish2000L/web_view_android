@@ -108,8 +108,8 @@ public class web_view extends AppCompatActivity  {
         webView.setVisibility(View.VISIBLE);
         current_version.setText(BuildConfig.VERSION_NAME);
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,new homefragment()).addToBackStack(null).commit();
-        navigationView.setCheckedItem(R.id.home);
+        //getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,new homefragment()).addToBackStack(null).commit();
+        //navigationView.setCheckedItem(R.id.home);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             Fragment temp;
             @Override
@@ -119,18 +119,17 @@ public class web_view extends AppCompatActivity  {
                 switch (menuItem.getItemId())
                 {
                     case R.id.home:
-                        temp=new homefragment();
-                        drawerLayout.closeDrawer(GravityCompat.START);
+                        //temp=new homefragment();
                         break;
 
                     case R.id.settings:
-                        temp= new settingfragment();
-                        drawerLayout.closeDrawer(GravityCompat.START);
+                        //temp= new settingfragment();
                         break;
                 }
 
 
-                getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,temp).addToBackStack(null).commit();
+                drawerLayout.closeDrawer(GravityCompat.START);
+                //getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,temp).addToBackStack(null).commit();
                 return true;
             }
         });
