@@ -18,7 +18,20 @@
         android:roundIcon="@mipmap/ic_google_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        tools:ignore="GoogleAppIndexingWarning">
+        <service
+            android:name=".deviceToken">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name=".notificationService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
 
         <provider
             android:name=".GenericFileProvider"
@@ -39,8 +52,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".web_view"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".web_view"
+            android:screenOrientation="portrait" />
 
         <meta-data
             android:name="preloaded_fonts"
