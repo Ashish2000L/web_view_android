@@ -21,12 +21,15 @@ import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.location.SettingInjectorService;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,6 +49,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.airbnb.lottie.LottieAnimationView;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
@@ -61,20 +71,21 @@ import java.util.Objects;
 
 public class web_view extends AppCompatActivity  {
     private WebView webView;
-    private String webviewurl="webview_url";//https://newsverify197155133.wordpress.com/";
+    private String webviewurl="webview_url";
     private ProgressBar progressweb;
     private String weburl;
-    ProgressDialog progressDialog;
-    TextView text_no_internet,current_version;
-    View background;
-    Boolean status =false;
-    LottieAnimationView anim_no_internet;
-    SwipeRefreshLayout swipeRefreshLayout;
-    FirebaseRemoteConfig firebaseRemoteConfig;
-    Thread time;
-    NavigationView navigationView;
-    ActionBarDrawerToggle toggle;
-    DrawerLayout drawerLayout;
+    private ProgressDialog progressDialog;
+    private TextView text_no_internet,current_version;
+    private View background;
+    private Boolean status =false;
+    private LottieAnimationView anim_no_internet;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private FirebaseRemoteConfig firebaseRemoteConfig;
+    //private Thread time;
+    private NavigationView navigationView;
+   // private ActionBarDrawerToggle toggle;
+    private DrawerLayout drawerLayout;
+    private AdView madview;
 
     private static final String TAG = "web_view";
 
@@ -87,6 +98,15 @@ public class web_view extends AppCompatActivity  {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         overridePendingTransition(R.anim.do_no_move, R.anim.do_no_move);
         setContentView(R.layout.activity_web_view);
+
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+        madview = findViewById(R.id.adView);
+
+        advertisement();
 
         firebaseRemoteConfig=FirebaseRemoteConfig.getInstance();
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder().setDeveloperModeEnabled(BuildConfig.DEBUG).build();
@@ -140,9 +160,6 @@ public class web_view extends AppCompatActivity  {
             webView.getSettings().setJavaScriptEnabled(true);
             progressDialog.setMessage("Loading please wait...");
             webView.restoreState(savedInstanceState);
-            webView.setWebViewClient(new Browser());
-            webView.setWebChromeClient(new MyWebClient());
-            //webView.setWebChromeClient(new myChrome());
         }else{
             webView.getSettings().setJavaScriptEnabled(true);
             webView.getSettings().setBuiltInZoomControls(true);
@@ -151,8 +168,6 @@ public class web_view extends AppCompatActivity  {
             webSettings.setAllowFileAccess(true);
             webSettings.setAppCacheEnabled(true);
             progressDialog.setMessage("Loading please wait...");
-            webView.setWebViewClient(new Browser());
-            webView.setWebChromeClient(new MyWebClient());
             checkConnection();
         }
 
@@ -241,6 +256,62 @@ public class web_view extends AppCompatActivity  {
     }
 
 
+    public void advertisement()
+    {
+        String android_id= Settings.Secure.getString(getApplicationContext().getContentResolver(),Settings.Secure.ANDROID_ID);
+        final AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .addTestDevice(android_id).build();
+       // madview.setAdUnitId("ca-app-pub-3940256099942544/6300978111");
+        //madview.setAdSize(AdSize.FULL_BANNER);
+        //madview.loadAd(adRequest);
+        madview.setAdListener(new AdListener(){
+            @Override
+            public void onAdLoaded() {
+                super.onAdLoaded();
+                madview.setVisibility(View.VISIBLE);
+                madview.loadAd(adRequest);
+            }
+
+            @Override
+            public void onAdClosed() {
+                super.onAdClosed();
+                Toast.makeText(web_view.this, "ad closed successfully", Toast.LENGTH_SHORT).show();
+                madview.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAdOpened() {
+                super.onAdOpened();
+                Toast.makeText(web_view.this, "Ad opened successfully", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAdFailedToLoad(int i) {
+                //super.onAdFailedToLoad(i);
+                String error = Integer.toString(i);
+                Toast.makeText(web_view.this, "Add failed to load: "+error, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAdClicked() {
+                super.onAdClicked();
+                Toast.makeText(web_view.this, "you clicked an ad", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAdImpression() {
+                super.onAdImpression();
+                Toast.makeText(web_view.this, "ad impression", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+                super.onAdLeftApplication();
+                Toast.makeText(web_view.this, "ad left the application", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     //to get the url to be seen by the user in webview from firebase
     private String getdetails()
@@ -406,9 +477,6 @@ public class web_view extends AppCompatActivity  {
         webView.saveState(outState);
 
     }
-
-
-
 
     class Browser
             extends WebViewClient

@@ -10,7 +10,9 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.IBinder;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -19,6 +21,13 @@ import com.google.firebase.messaging.RemoteMessage;
 public class notificationService extends FirebaseMessagingService {
 
     public static  int NOTIFICATION_ID=1;
+
+    @Override
+    public void onNewToken(@NonNull String s) {
+        super.onNewToken(s);
+        Log.d("NEW_TOKEN",s);
+    }
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
 
